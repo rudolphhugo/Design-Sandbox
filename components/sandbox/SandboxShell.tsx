@@ -4,29 +4,48 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
-import { components } from "@/lib/registry";
+import { components, layouts, animations } from "@/lib/registry";
+
+export type TabType = "components" | "layouts" | "animations";
 
 export function SandboxShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Derive active tab from URL
-  const deriveTab = (): "components" | "layouts" => {
+  const deriveTab = (): TabType => {
     if (pathname.startsWith("/layouts")) return "layouts";
+    if (pathname.startsWith("/animations")) return "animations";
     return "components";
   };
 
-  const [activeTab, setActiveTab] = useState<"components" | "layouts">(deriveTab);
+  const [activeTab, setActiveTab] = useState<TabType>(deriveTab);
 
-  const handleTabChange = (tab: "components" | "layouts") => {
+  const isLayoutPage = pathname.startsWith("/layouts");
+
+  const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     if (tab === "components" && components.length > 0) {
       router.push(`/components/${components[0].slug}`);
-    } else if (tab === "layouts") {
-      router.push("/layouts");
+    } else if (tab === "layouts" && layouts.length > 0) {
+      router.push(`/layouts/${layouts[0].slug}`);
+    } else if (tab === "animations" && animations.length > 0) {
+      router.push(`/animations/${animations[0].slug}`);
+    } else {
+      router.push(`/${tab}`);
     }
   };
 
+  // Layout pages: full-screen, no sidebar, bottom nav only
+  if (isLayoutPage) {
+    return (
+      <div className="min-h-screen">
+        <main className="pb-24">{children}</main>
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
+      </div>
+    );
+  }
+
+  // Component pages: sidebar + bottom nav
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar activeTab={activeTab} />

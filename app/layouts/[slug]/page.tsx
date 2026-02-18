@@ -15,12 +15,7 @@ export default async function LayoutPage({ params }: Props) {
 
   const LayoutComponent = entry.component;
 
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">{entry.name}</h2>
-      <LayoutComponent />
-    </div>
-  );
+  return <LayoutComponent />;
 }
 
 export function generateStaticParams() {

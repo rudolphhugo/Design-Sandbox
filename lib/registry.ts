@@ -9,8 +9,6 @@ export interface RegistryItem {
 }
 
 import { ProjectHeroCard } from "@/components/showcase/ProjectHeroCard";
-import { DropdownShowcase } from "@/components/showcase/DropdownShowcase";
-import { InputFieldShowcase } from "@/components/showcase/InputFieldShowcase";
 
 export const components: RegistryItem[] = [
   {
@@ -18,18 +16,37 @@ export const components: RegistryItem[] = [
     name: "Project Hero Card",
     component: ProjectHeroCard,
   },
+];
+
+import { TestLayout2 } from "@/components/showcase/TestLayout2";
+import { TestLayout3 } from "@/components/showcase/TestLayout3";
+import { TobiasCV } from "@/components/showcase/TobiasCV";
+
+export const layouts: RegistryItem[] = [
   {
-    slug: "dropdown",
-    name: "Dropdown",
-    component: DropdownShowcase,
-    showcase: true,
+    slug: "tobias-cv",
+    name: "Tobias CV",
+    component: TobiasCV,
   },
   {
-    slug: "input-fields",
-    name: "Input Fields",
-    component: InputFieldShowcase,
-    showcase: true,
+    slug: "test-layout-2",
+    name: "Test Layout 2",
+    component: TestLayout2,
+  },
+  {
+    slug: "test-layout-3",
+    name: "Test Layout 3",
+    component: TestLayout3,
   },
 ];
 
-export const layouts: RegistryItem[] = [];
+import { FadeInBasics } from "@/components/animations/FadeInBasics";
+
+export const animations: RegistryItem[] = [
+  {
+    slug: "fade-in-basics",
+    name: "1. Fade In — The Basics",
+    component: FadeInBasics,
+    showcase: true,
+  },
+];
