@@ -126,3 +126,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide scrollbar for side menu */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* BluViu main background gradient — reusable across layouts */
+@utility bluviu-gradient {
+  background: linear-gradient(to bottom, #017158 0%, #012231 65%);
+}

@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { components, layouts, type RegistryItem } from "@/lib/registry";
+import { components, layouts, animations, type RegistryItem } from "@/lib/registry";
+import type { TabType } from "./SandboxShell";
 
 interface SidebarProps {
-  activeTab: "components" | "layouts";
+  activeTab: TabType;
 }
+
+const tabItems: Record<TabType, { items: RegistryItem[]; basePath: string }> = {
+  components: { items: components, basePath: "/components" },
+  layouts: { items: layouts, basePath: "/layouts" },
+  animations: { items: animations, basePath: "/animations" },
+};
 
 export function Sidebar({ activeTab }: SidebarProps) {
   const pathname = usePathname();
-  const items: RegistryItem[] = activeTab === "components" ? components : layouts;
-  const basePath = activeTab === "components" ? "/components" : "/layouts";
+  const { items, basePath } = tabItems[activeTab];
 
   return (
     <aside className="w-64 shrink-0 border-r border-border bg-sidebar h-full overflow-y-auto">
