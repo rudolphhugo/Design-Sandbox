@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Plus,
@@ -12,7 +12,6 @@ import {
   CheckCheck,
   AlertCircle,
   X,
-  ChevronRight,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -424,7 +423,7 @@ export function TodoApp() {
   const activeTasks = tasks.filter((t) => !t.completed);
   const completedTasks = tasks.filter((t) => t.completed);
 
-  const viewTasks = useMemo(() => {
+  const viewTasks = (() => {
     switch (activeView) {
       case "inbox":
         return sortTasks(activeTasks);
@@ -437,19 +436,16 @@ export function TodoApp() {
           (b.completedAt ?? "").localeCompare(a.completedAt ?? "")
         );
     }
-  }, [tasks, activeView]);
+  })();
 
   // ── Badge counts ──
 
-  const counts: Record<ViewId, number> = useMemo(
-    () => ({
-      inbox: activeTasks.length,
-      today: activeTasks.filter((t) => isToday(t) || isOverdue(t)).length,
-      upcoming: activeTasks.filter((t) => isUpcoming(t)).length,
-      done: completedTasks.length,
-    }),
-    [tasks]
-  );
+  const counts: Record<ViewId, number> = {
+    inbox: activeTasks.length,
+    today: activeTasks.filter((t) => isToday(t) || isOverdue(t)).length,
+    upcoming: activeTasks.filter((t) => isUpcoming(t)).length,
+    done: completedTasks.length,
+  };
 
   const overdueCount = activeTasks.filter(isOverdue).length;
 
