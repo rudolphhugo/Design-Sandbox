@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
 
+const isGitHubPages = process.env.GITHUB_ACTIONS === "true";
+
 const nextConfig: NextConfig = {
-  output: "export",
-  basePath: "/Design-Sandbox",
+  ...(isGitHubPages && {
+    output: "export",
+    basePath: "/Design-Sandbox",
+  }),
   images: {
     unoptimized: true,
   },
