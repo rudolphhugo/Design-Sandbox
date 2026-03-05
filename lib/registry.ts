@@ -21,8 +21,14 @@ export const components: RegistryItem[] = [
 import { TestLayout2 } from "@/components/showcase/TestLayout2";
 import { TestLayout3 } from "@/components/showcase/TestLayout3";
 import { TobiasCV } from "@/components/showcase/TobiasCV";
+import { TodoApp } from "@/components/showcase/TodoApp";
 
 export const layouts: RegistryItem[] = [
+  {
+    slug: "todo-app",
+    name: "ToDo",
+    component: TodoApp,
+  },
   {
     slug: "tobias-cv",
     name: "Tobias CV",
