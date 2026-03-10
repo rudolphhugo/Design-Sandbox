@@ -83,9 +83,9 @@ export function ProjectOverview({ projectId }: Props) {
     project.pages.length === 0
       ? 0
       : Math.round(
-          project.pages.reduce((sum, p) => sum + getPageProgress(p).pct, 0) /
-            project.pages.length
-        );
+        project.pages.reduce((sum, p) => sum + getPageProgress(p).pct, 0) /
+        project.pages.length
+      );
 
   return (
     <div className="min-h-screen bg-background">
@@ -110,6 +110,14 @@ export function ProjectOverview({ projectId }: Props) {
             <Badge variant="secondary" className="text-xs hidden sm:flex">
               {project.conformanceTarget}
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/layouts/a11y-audit/${projectId}/criteria`)}
+            >
+              <BarChart2 className="w-3.5 h-3.5 mr-1.5" />
+              Batch Audit
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -208,8 +216,8 @@ export function ProjectOverview({ projectId }: Props) {
                         {page.status === "not-started"
                           ? "Start"
                           : page.status === "complete"
-                          ? "Review"
-                          : "Continue"}
+                            ? "Review"
+                            : "Continue"}
                       </Button>
                     </div>
                   </div>
