@@ -22,8 +22,14 @@ import { TestLayout2 } from "@/components/showcase/TestLayout2";
 import { TestLayout3 } from "@/components/showcase/TestLayout3";
 import { TobiasCV } from "@/components/showcase/TobiasCV";
 import { TodoApp } from "@/components/showcase/TodoApp";
+import { ProjectsHome } from "@/components/audit/ProjectsHome";
 
 export const layouts: RegistryItem[] = [
+  {
+    slug: "a11y-audit",
+    name: "A11y Audit",
+    component: ProjectsHome,
+  },
   {
     slug: "todo-app",
     name: "ToDo",
