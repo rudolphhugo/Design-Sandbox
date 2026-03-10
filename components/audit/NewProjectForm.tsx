@@ -99,10 +99,15 @@ export function NewProjectForm() {
                 </label>
                 <Input
                   id="websiteUrl"
-                  type="url"
-                  placeholder="https://example.se"
+                  placeholder="example.se"
                   value={form.websiteUrl}
                   onChange={(e) => setForm({ ...form, websiteUrl: e.target.value })}
+                  onBlur={(e) => {
+                    const val = e.target.value.trim();
+                    if (val && !/^https?:\/\//i.test(val)) {
+                      setForm((f) => ({ ...f, websiteUrl: `https://${val}` }));
+                    }
+                  }}
                   required
                 />
               </div>
