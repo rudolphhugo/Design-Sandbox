@@ -42,8 +42,12 @@ export function NewProjectForm() {
       "EU standard required for public sector websites under the Web Accessibility Directive. Harmonised with WCAG 2.1 AA + extra requirements for media, forms, and documentation.",
     "WCAG 2.1 AA":
       "The global standard for web accessibility. Level AA is the widely accepted target for commercial and public websites.",
+    "WCAG 2.1 AAA":
+      "The highest WCAG 2.1 conformance level. Not recommended as a blanket target — some AAA criteria cannot be met for all content types. Best used for specific high-priority pages or components.",
     "WCAG 2.2 AA":
       "Latest WCAG version (2023). Adds improved focus visibility, touch target sizing, and redundant entry rules over WCAG 2.1.",
+    "WCAG 2.2 AAA":
+      "Highest conformance level for the latest WCAG version. Exceptionally demanding — typically only targeted for specialised services (e.g. services for users with severe disabilities).",
   };
 
   return (
@@ -148,7 +152,9 @@ export function NewProjectForm() {
               <SelectContent>
                 <SelectItem value="EN 301 549">EN 301 549</SelectItem>
                 <SelectItem value="WCAG 2.1 AA">WCAG 2.1 AA</SelectItem>
+                <SelectItem value="WCAG 2.1 AAA">WCAG 2.1 AAA</SelectItem>
                 <SelectItem value="WCAG 2.2 AA">WCAG 2.2 AA</SelectItem>
+                <SelectItem value="WCAG 2.2 AAA">WCAG 2.2 AAA</SelectItem>
               </SelectContent>
             </Select>
 

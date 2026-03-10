@@ -1,4 +1,4 @@
-export type ConformanceTarget = "WCAG 2.1 AA" | "WCAG 2.2 AA" | "EN 301 549";
+export type ConformanceTarget = "WCAG 2.1 AA" | "WCAG 2.1 AAA" | "WCAG 2.2 AA" | "WCAG 2.2 AAA" | "EN 301 549";
 export type CheckStatus = "pending" | "pass" | "fail" | "partial" | "na";
 export type Severity = "critical" | "high" | "medium" | "low";
 export type Phase =
@@ -15,7 +15,7 @@ export interface AuditCheck {
   category: string;
   title: string;
   wcag: string;
-  level: "A" | "AA";
+  level: "A" | "AA" | "AAA";
   whyItMatters: string;
   howToTest: string;
   tool?: string;

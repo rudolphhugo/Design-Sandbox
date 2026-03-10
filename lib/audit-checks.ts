@@ -770,6 +770,820 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "No automatic refresh or redirect occurs without warning. Session timeouts give ≥20 seconds notice and allow extension. Default timeout is ≥20 hours.",
   },
+
+  // ─── MISSING AA/A CHECKS ──────────────────────────────────────────────────
+
+  // Phase 1: Automated
+  {
+    id: "auto-12",
+    phase: "automated",
+    category: "Images",
+    title: "Images of text use real text instead",
+    wcag: "1.4.5",
+    level: "AA",
+    whyItMatters:
+      "Images of text cannot be resized, cannot be reflowed, and cannot have their colours changed by the user. Real text is always superior for accessibility and responsiveness.",
+    howToTest:
+      "1. Scan the page for any text rendered inside images (logos with taglines, banners, buttons).\n2. Right-click suspected elements → Inspect — is it an <img> or a <canvas>?\n3. Exceptions: logotypes (company name as part of logo) are permitted. Text essential to the image itself (e.g. a photo of a sign) is also permitted.",
+    tool: "DevTools + visual inspection",
+    passCondition:
+      "No images of text are used where real styled text could achieve the same visual effect. Logotypes and essential text in photos are the only exceptions.",
+  },
+
+  // Phase 2: Keyboard
+  {
+    id: "key-09",
+    phase: "keyboard",
+    category: "Navigation",
+    title: "Character key shortcuts can be remapped or disabled",
+    wcag: "2.1.4",
+    level: "A",
+    conditional: "Only if the page implements single-key keyboard shortcuts (e.g. pressing 'S' to search)",
+    whyItMatters:
+      "Voice control users who dictate text will accidentally trigger shortcuts. Users who rely on keyboard but have motor difficulties may hit wrong keys.",
+    howToTest:
+      "1. Identify any single-character keyboard shortcuts (letter, number, punctuation — without modifier keys like Ctrl/Alt).\n2. Can they be turned off?\n3. Can they be remapped to include a modifier key?\n4. Or are they only active when a specific component has focus?",
+    tool: "Keyboard testing + documentation review",
+    passCondition:
+      "Single-character shortcuts can be disabled, remapped to a modifier-key combination, or are only active when focus is on a specific UI component.",
+  },
+  {
+    id: "key-10",
+    phase: "keyboard",
+    category: "Focus",
+    title: "Headings and labels describe their topic or purpose",
+    wcag: "2.4.6",
+    level: "AA",
+    whyItMatters:
+      "Vague headings like 'Section 1' or unlabelled form fields force users — especially those with cognitive disabilities — to read all surrounding content to understand context.",
+    howToTest:
+      "1. Read every heading on the page — does each one describe what follows?\n2. Read every form label — does it clearly identify the field's purpose?\n3. Check placeholder text is not used as the only label (placeholders disappear when typing).\n4. Consider: would a user understand the page structure from headings alone?",
+    tool: "Visual review + WAVE headings list",
+    passCondition:
+      "Every heading describes the content that follows it. Every label describes the purpose of its associated form field. No field relies solely on placeholder text.",
+  },
+  {
+    id: "key-11",
+    phase: "keyboard",
+    category: "Focus",
+    title: "Focused component is not hidden behind sticky elements",
+    wcag: "2.4.11",
+    level: "AA",
+    conditional: "Only if the page has sticky headers, fixed footers, cookie banners, or floating elements",
+    whyItMatters:
+      "If a sticky header covers a focused form field or button, keyboard users cannot see what they are interacting with — it appears to vanish.",
+    howToTest:
+      "1. Tab through the page carefully.\n2. When focus reaches an element, is it fully visible? Or is it partially hidden behind a sticky header, fixed banner, or floating widget?\n3. Pay special attention to: first focusable item after the sticky element, and elements near the bottom of the screen with fixed footers.",
+    tool: "Keyboard + visual inspection",
+    passCondition:
+      "When any component receives keyboard focus, it is not entirely hidden by author-created overlapping content. At least part of the component is visible.",
+  },
+  {
+    id: "key-12",
+    phase: "keyboard",
+    category: "Touch & Pointer",
+    title: "Multi-touch gestures have a single-pointer alternative",
+    wcag: "2.5.1",
+    level: "A",
+    conditional: "Only if the page uses multi-touch gestures (pinch-to-zoom, two-finger swipe, etc.)",
+    whyItMatters:
+      "Users with one hand, prosthetics, or motor impairments cannot perform multi-touch gestures. All gesture-based functionality must have a one-finger equivalent.",
+    howToTest:
+      "1. Identify any multi-touch gestures: pinch to zoom, two-finger swipe, rotate.\n2. Is there an alternative single-pointer way to achieve the same result? (e.g. +/- zoom buttons instead of pinch).\n3. Test on a touch device or with DevTools touch simulation.",
+    tool: "DevTools touch simulation + manual",
+    passCondition:
+      "Every multi-touch gesture has an equivalent single-pointer alternative that achieves the same function.",
+  },
+  {
+    id: "key-13",
+    phase: "keyboard",
+    category: "Touch & Pointer",
+    title: "Pointer actions execute on up-event, not down-event",
+    wcag: "2.5.2",
+    level: "A",
+    whyItMatters:
+      "If an action fires on mousedown/touchstart, users cannot cancel by moving the pointer away before releasing. This is critical for users with tremors who may accidentally touch the wrong target.",
+    howToTest:
+      "1. Click and hold any interactive element — does the action fire immediately on press?\n2. Press and hold, then drag away before releasing — does the action still fire?\n3. Acceptable: actions that fire on down-event if there is an up-event mechanism to abort, or if the down-event is essential (e.g. a keyboard emulator).",
+    tool: "Manual mouse/touch testing",
+    passCondition:
+      "Actions activate on pointer up (mouseup/touchend), not on pointer down. Or if down-event is used, the action can be cancelled by moving away before releasing.",
+  },
+  {
+    id: "key-14",
+    phase: "keyboard",
+    category: "Touch & Pointer",
+    title: "Device motion actions have UI alternatives",
+    wcag: "2.5.4",
+    level: "A",
+    conditional: "Only if the page responds to device motion or orientation (shake, tilt, etc.)",
+    whyItMatters:
+      "Shaking or tilting a device is impossible for users with motor disabilities who have their device mounted. All motion-triggered functions must have a UI equivalent.",
+    howToTest:
+      "1. Check if the page responds to device motion (shake to undo, tilt to scroll, etc.).\n2. Is there a UI control that does the same thing?\n3. Can the motion response be disabled without disabling system-wide accessibility settings?",
+    tool: "Manual + DevTools sensors panel",
+    passCondition:
+      "Any functionality triggered by device motion has an equivalent UI control. Users can disable the motion trigger without affecting system-level accessibility.",
+  },
+  {
+    id: "key-15",
+    phase: "keyboard",
+    category: "Touch & Pointer",
+    title: "Dragging actions have a single-pointer alternative",
+    wcag: "2.5.7",
+    level: "AA",
+    conditional: "Only if the page uses drag-and-drop interactions (WCAG 2.2)",
+    whyItMatters:
+      "Dragging requires holding a button while moving — impossible for users with tremors or limited fine motor control. Drag-and-drop must always have an alternative.",
+    howToTest:
+      "1. Identify all drag-and-drop interfaces: file upload areas, sortable lists, sliders, kanban boards.\n2. Can the same action be done without dragging? (e.g. move buttons, click-to-select-then-click-to-place)\n3. Test with keyboard and with a single mouse click.",
+    tool: "Manual keyboard + pointer testing",
+    passCondition:
+      "All dragging functionality has an equivalent single-pointer alternative that does not require dragging. Exception: dragging is essential to the function.",
+  },
+  {
+    id: "key-16",
+    phase: "keyboard",
+    category: "Touch & Pointer",
+    title: "Touch targets are at least 24×24 CSS pixels",
+    wcag: "2.5.8",
+    level: "AA",
+    conditional: "WCAG 2.2 only — only if auditing against WCAG 2.2 AA or higher",
+    whyItMatters:
+      "Tiny tap targets cause frequent misfires, especially for users with tremors, large fingers, or motor impairments. 24×24px is the minimum — 44×44px is the recommended target.",
+    howToTest:
+      "1. DevTools → inspect interactive elements (buttons, links, icons).\n2. Check width and height. Elements under 24×24px fail unless there is 24px of non-interactive spacing around them.\n3. Pay attention to: close buttons, icon links, pagination, checkbox/radio inputs.",
+    tool: "DevTools + ruler",
+    passCondition:
+      "All interactive targets are at least 24×24 CSS pixels in size, OR have sufficient spacing so the target offset area is at least 24×24px.",
+  },
+
+  // Phase 3: Screen Reader — missing media checks
+  {
+    id: "sr-11",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Audio-only content has a text transcript",
+    wcag: "1.2.1",
+    level: "A",
+    conditional: "Only if the page has prerecorded audio-only content (podcasts, audio clips)",
+    whyItMatters:
+      "Deaf users cannot access audio-only content. A transcript is the only equivalent — it must capture all spoken content, speaker identifications, and relevant non-speech sounds.",
+    howToTest:
+      "1. Find any audio-only players on the page.\n2. Is there a transcript provided — either inline or via a clearly labelled link?\n3. Does the transcript include all dialogue, speaker names, and meaningful sounds (e.g. [applause], [music])?\n4. Is the transcript link keyboard accessible?",
+    tool: "Manual + keyboard",
+    voiceOverTip: "Navigate to the audio player with VoiceOver — check if a transcript link is adjacent and reachable.",
+    passCondition:
+      "Every prerecorded audio-only file has a full text transcript provided on the same page or via an accessible link immediately adjacent to the player.",
+  },
+  {
+    id: "sr-12",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Silent video has a text or audio description",
+    wcag: "1.2.1",
+    level: "A",
+    conditional: "Only if the page has prerecorded video-only content (animations, silent videos)",
+    whyItMatters:
+      "Blind users cannot see visual-only videos. A text description or audio track describing the visual content is required.",
+    howToTest:
+      "1. Find any video-only content (no audio track, or audio that does not describe the visuals).\n2. Is there a descriptive text alternative or an audio description track?\n3. Does it accurately describe all meaningful visual information?",
+    tool: "Manual inspection",
+    passCondition:
+      "Every prerecorded video-only file has either a text alternative describing all visual content, or an audio description track.",
+  },
+  {
+    id: "sr-13",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Prerecorded video has synchronised captions",
+    wcag: "1.2.2",
+    level: "A",
+    conditional: "Only if the page has prerecorded video with audio",
+    whyItMatters:
+      "Captions are essential for deaf and hard-of-hearing users. Auto-generated captions are typically too inaccurate — manually reviewed captions are required.",
+    howToTest:
+      "1. Play any video with audio.\n2. Enable captions (CC button) — are they available?\n3. Check accuracy: do captions match speech? Are speaker changes identified? Are meaningful sounds noted (e.g. [door slams])?\n4. Are captions synchronised — no more than 2 seconds out of sync?",
+    tool: "Video player + manual review",
+    voiceOverTip: "Test that the CC toggle button is reachable and operable with VoiceOver.",
+    passCondition:
+      "All prerecorded video with audio has accurate, synchronised captions. Captions include all dialogue, speaker identification, and relevant non-speech audio.",
+  },
+  {
+    id: "sr-14",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Prerecorded video has an audio description track",
+    wcag: "1.2.5",
+    level: "AA",
+    conditional: "Only if the page has prerecorded video where visual content is not described in the audio",
+    whyItMatters:
+      "If a video shows important visual information (a graph being drawn, a product being assembled, text appearing on screen) that is not mentioned in the narration, blind users miss it entirely.",
+    howToTest:
+      "1. Watch videos with the screen covered.\n2. Can you understand everything important from audio alone?\n3. If not: is there an audio description track that describes the visual content?\n4. Is the audio description track selectable via the player controls, and are those controls keyboard accessible?",
+    tool: "Manual + keyboard",
+    passCondition:
+      "All important visual content in prerecorded video is either described in the main audio track, or an audio description track is available and selectable.",
+  },
+  {
+    id: "sr-15",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Live video has real-time captions",
+    wcag: "1.2.4",
+    level: "AA",
+    conditional: "Only if the page has live audio or video content (webinars, live streams)",
+    whyItMatters:
+      "Deaf users cannot access live events without captions. Auto-captions are often insufficient for live content — human stenographers or CART are the gold standard.",
+    howToTest:
+      "1. Check if any live audio/video content is present or scheduled.\n2. Are captions available during live broadcast?\n3. Are they synchronised closely enough to be usable?\n4. Is the caption activation control keyboard accessible?",
+    tool: "Live event testing",
+    passCondition:
+      "All live video with audio has synchronised captions available. Captions do not need to be perfect but must be accurate enough to convey the essential content.",
+  },
+
+  // Phase 4: Visual — missing checks
+  {
+    id: "vis-09",
+    phase: "visual",
+    category: "Responsiveness",
+    title: "Content does not lock to a single screen orientation",
+    wcag: "1.3.4",
+    level: "AA",
+    conditional: "WCAG 2.1 — only if the site does not have an inherent reason to restrict orientation",
+    whyItMatters:
+      "Users with devices mounted in a fixed orientation (e.g. wheelchair-mounted tablets) cannot rotate their device. Forcing portrait or landscape locks them out.",
+    howToTest:
+      "1. Open the page on a mobile device or use DevTools → responsive mode.\n2. Rotate between portrait and landscape.\n3. Does the content reflow and remain fully accessible in both orientations?\n4. Exception: apps that are inherently orientation-specific (a piano keyboard, a spirit level) are exempt.",
+    tool: "Mobile device or DevTools responsive mode",
+    passCondition:
+      "Page content works in both portrait and landscape orientations. No orientation lock is applied unless the specific content requires it.",
+  },
+  {
+    id: "vis-10",
+    phase: "visual",
+    category: "Navigation",
+    title: "Context does not change when a field value changes",
+    wcag: "3.2.2",
+    level: "A",
+    whyItMatters:
+      "If selecting a dropdown option automatically navigates to a new page, or filling a field triggers a form submission, keyboard and screen reader users are sent somewhere unexpected.",
+    howToTest:
+      "1. Find all select menus, radio buttons, checkboxes, and input fields.\n2. Change each value — does any context change happen automatically?\n3. Acceptable: a submit button that the user explicitly activates. Failure: page navigates on select change without warning.",
+    tool: "Keyboard + visual inspection",
+    passCondition:
+      "Changing the value of any UI component does not automatically trigger a context change (navigation, form submission, new window). Changes only happen on explicit user action.",
+  },
+  {
+    id: "vis-11",
+    phase: "visual",
+    category: "Navigation",
+    title: "Help links appear in consistent location across pages",
+    wcag: "3.2.6",
+    level: "AA",
+    conditional: "WCAG 2.2 only — only if the site provides any form of human contact or help mechanism",
+    whyItMatters:
+      "Users with cognitive disabilities rely on predictable placement of support mechanisms. Finding help should not require re-learning the interface on each page.",
+    howToTest:
+      "1. Identify any help mechanisms: chat widgets, contact links, help pages, phone numbers, support links.\n2. Visit multiple pages — does the help mechanism appear in the same location each time?\n3. Check header, footer, and any persistent UI elements.",
+    tool: "Visual comparison across pages",
+    passCondition:
+      "If a help mechanism exists, it appears in the same relative location on every page it appears. It is keyboard accessible and consistently labelled.",
+  },
+
+  // Phase 5: Code — missing checks
+  {
+    id: "code-13",
+    phase: "code",
+    category: "Forms",
+    title: "Previously entered information is not required again",
+    wcag: "3.3.7",
+    level: "AA",
+    conditional: "WCAG 2.2 — only if the process requires re-entering the same information across steps",
+    whyItMatters:
+      "Requiring users to re-enter their email, address, or other data across a multi-step process is a significant burden for users with cognitive disabilities or motor impairments.",
+    howToTest:
+      "1. Go through any multi-step forms (checkout, registration, application).\n2. Is any previously entered information required again in a later step?\n3. If so: is it auto-populated? Or can the user select it from a previously entered value?\n4. Exception: re-entering for security confirmation (e.g. new password + confirm password) is permitted.",
+    tool: "Manual form testing",
+    passCondition:
+      "Information already entered earlier in the same process is either auto-populated, available to select, or not required again. Security confirmation re-entry is exempt.",
+  },
+  {
+    id: "code-14",
+    phase: "code",
+    category: "Forms",
+    title: "Authentication does not require a cognitive function test",
+    wcag: "3.3.8",
+    level: "AA",
+    conditional: "WCAG 2.2 — only if the page has a login or authentication step",
+    whyItMatters:
+      "Transcribing distorted CAPTCHA text or solving puzzles is impossible for users with cognitive disabilities such as dyslexia, memory issues, or dyscalculia.",
+    howToTest:
+      "1. Go through the login/authentication flow.\n2. Is there a CAPTCHA or puzzle that requires: recognising distorted text, solving a puzzle, or transcribing content?\n3. Is there an accessible alternative? (Email magic link, passkey, copy-paste allowed, object recognition instead of text)\n4. Note: simple 'I am not a robot' checkbox is acceptable.",
+    tool: "Manual testing",
+    passCondition:
+      "Authentication does not require solving a cognitive function test (transcribing, puzzle-solving) unless an alternative method is provided. Copy-paste must be allowed.",
+  },
+
+  // ─── AAA CHECKS ───────────────────────────────────────────────────────────
+
+  // Phase 1: Automated — AAA
+  {
+    id: "aaa-01",
+    phase: "automated",
+    category: "Colour & Contrast",
+    title: "Text has enhanced contrast ratio of 7:1",
+    wcag: "1.4.6",
+    level: "AAA",
+    whyItMatters:
+      "7:1 contrast accommodates users with moderately low vision who do not use assistive technology. The AA standard of 4.5:1 still leaves a gap for these users.",
+    howToTest:
+      "1. Use Colour Contrast Analyser on all text.\n2. Normal text: must achieve 7:1.\n3. Large text (18pt+ or 14pt bold+): must achieve 4.5:1.\n4. Same exemptions as 1.4.3: logos, inactive components, decorative text.",
+    tool: "Colour Contrast Analyser",
+    passCondition:
+      "Normal text achieves 7:1 contrast. Large text achieves 4.5:1. All AA contrast requirements are also met.",
+  },
+  {
+    id: "aaa-02",
+    phase: "automated",
+    category: "Images",
+    title: "No images of text used — including logos",
+    wcag: "1.4.9",
+    level: "AAA",
+    whyItMatters:
+      "AAA removes the logo exception from 1.4.5 — all text, even logotypes, should be real text to allow maximum customisation by users with visual impairments.",
+    howToTest:
+      "1. Scan the entire page for any text rendered as an image.\n2. This includes company logos with text, decorative headings as images, and stylised text effects.\n3. Real CSS text with custom fonts is always preferable.",
+    tool: "DevTools + visual inspection",
+    passCondition:
+      "No images of text are used anywhere on the page. All text — including logotypes — is rendered using real, styled text.",
+  },
+
+  // Phase 2: Keyboard — AAA
+  {
+    id: "aaa-03",
+    phase: "keyboard",
+    category: "Navigation",
+    title: "All functionality operable by keyboard — no exceptions",
+    wcag: "2.1.3",
+    level: "AAA",
+    whyItMatters:
+      "WCAG 2.1.1 (AA) allows exceptions for 'path-dependent input' like drawing. AAA removes this — even freehand drawing tools must offer a keyboard-operable path.",
+    howToTest:
+      "1. Same test as 2.1.1 (key-02) but stricter.\n2. Are there ANY functions — including freehand input, drag-and-drop, drawing — that cannot be done with keyboard?\n3. AAA requires alternatives for all of these.",
+    tool: "Keyboard only",
+    passCondition:
+      "Every single function on the page — without any exception — is operable by keyboard alone. No path-dependent-input exceptions apply.",
+  },
+  {
+    id: "aaa-04",
+    phase: "keyboard",
+    category: "Focus",
+    title: "Focused component is fully visible — not obscured at all",
+    wcag: "2.4.12",
+    level: "AAA",
+    conditional: "WCAG 2.2 — enhanced version of 2.4.11",
+    whyItMatters:
+      "2.4.11 (AA) only requires focus is not entirely hidden. AAA requires it is not obscured at all — even partially hidden focus fails.",
+    howToTest:
+      "1. Tab through every interactive element.\n2. Is focused element fully visible — no part hidden behind any sticky/fixed element?\n3. Even partial obscuring by headers, banners, or cookie notices fails.",
+    tool: "Keyboard + visual inspection",
+    passCondition:
+      "When any component receives keyboard focus, it is completely visible — not partially hidden by any other author-created content.",
+  },
+  {
+    id: "aaa-05",
+    phase: "keyboard",
+    category: "Focus",
+    title: "Focus indicator meets enhanced size and contrast requirements",
+    wcag: "2.4.13",
+    level: "AAA",
+    conditional: "WCAG 2.2 — enhanced focus appearance",
+    whyItMatters:
+      "Even a technically visible focus ring can be functionally invisible if it is too thin or too low-contrast. AAA specifies minimum area and contrast for the focus indicator.",
+    howToTest:
+      "1. Tab to each interactive element.\n2. Measure the focus indicator: must enclose the component OR be at least 2 CSS pixel perimeter.\n3. Contrast: the area of focus indicator must have 3:1 contrast between focused and unfocused states.\n4. Focus indicator must not be completely hidden by other content.",
+    tool: "Keyboard + Colour Contrast Analyser + ruler",
+    passCondition:
+      "Focus indicator has ≥2px perimeter around the component, achieves 3:1 contrast between focused and unfocused states, and is not obscured.",
+  },
+  {
+    id: "aaa-06",
+    phase: "keyboard",
+    category: "Touch & Pointer",
+    title: "Touch targets are at least 44×44 CSS pixels",
+    wcag: "2.5.5",
+    level: "AAA",
+    conditional: "WCAG 2.1 — enhanced target size (AA minimum is 24×24 in WCAG 2.2)",
+    whyItMatters:
+      "Apple and Google both recommend 44×44px minimum touch targets for good reason — smaller targets cause frequent errors for all users, not just those with motor impairments.",
+    howToTest:
+      "1. DevTools: inspect width/height of all interactive elements.\n2. Any interactive target under 44×44px fails (exception: inline text links, elements styled by user-agent only).\n3. Note: this is stricter than the AA requirement of 24×24px.",
+    tool: "DevTools",
+    passCondition:
+      "All interactive targets are at least 44×44 CSS pixels. Inline text links within sentences are the only exception.",
+  },
+  {
+    id: "aaa-07",
+    phase: "keyboard",
+    category: "Touch & Pointer",
+    title: "No restriction to a single input modality",
+    wcag: "2.5.6",
+    level: "AAA",
+    conditional: "WCAG 2.1",
+    whyItMatters:
+      "Some interfaces switch to 'touch mode' when a touch event is detected, hiding mouse/keyboard options. Users may switch between input methods and must not be locked out.",
+    howToTest:
+      "1. Use the page with mouse, then switch to touch, then back to keyboard.\n2. Does the UI change modes and hide controls for other input types?\n3. Are all input methods always available simultaneously?",
+    tool: "Multi-input testing",
+    passCondition:
+      "The page does not restrict use to a single input modality. All input methods (touch, mouse, keyboard, stylus) work at all times.",
+  },
+
+  // Phase 3: Screen Reader — AAA
+  {
+    id: "aaa-08",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Prerecorded video has a sign language track",
+    wcag: "1.2.6",
+    level: "AAA",
+    conditional: "Only if the page has prerecorded video with audio content",
+    whyItMatters:
+      "For many Deaf users, sign language is their primary language. Written text can be a second language. A sign language interpretation provides native-language access.",
+    howToTest:
+      "1. Find prerecorded video with audio.\n2. Is there a sign language interpretation available — either embedded in the video or as an alternate video?\n3. Is the sign language version easily discoverable and accessible?",
+    tool: "Manual review",
+    passCondition:
+      "All prerecorded video with audio has sign language interpretation available in the primary sign language(s) of the intended audience.",
+  },
+  {
+    id: "aaa-09",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Extended audio descriptions provided for prerecorded video",
+    wcag: "1.2.7",
+    level: "AAA",
+    conditional: "Only if 1.2.5 audio descriptions are insufficient due to pausing requirements",
+    whyItMatters:
+      "When the video's audio track does not have sufficient pauses to insert audio descriptions, the video must be paused and extended descriptions inserted.",
+    howToTest:
+      "1. Check if the existing audio description track (1.2.5) fully communicates all visual content.\n2. If not: is there an extended audio description version where video pauses to allow longer descriptions?\n3. This typically means a separate video version.",
+    tool: "Manual review",
+    passCondition:
+      "All visual content is fully described. If descriptions require pausing the video, an extended audio description version is provided.",
+  },
+  {
+    id: "aaa-10",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Prerecorded synchronised media has a full text alternative",
+    wcag: "1.2.8",
+    level: "AAA",
+    conditional: "Only if the page has prerecorded video with audio",
+    whyItMatters:
+      "A combined text alternative (transcript that includes both dialogue and descriptions of visual content) serves users who are both deaf and blind, using refreshable Braille displays.",
+    howToTest:
+      "1. Find prerecorded video with audio.\n2. Is there a full media alternative text document? Not just captions — a full document that includes: all dialogue, all speaker identifications, all visual descriptions, all important sounds.\n3. Is it clearly linked and accessible?",
+    tool: "Manual review",
+    passCondition:
+      "A full media alternative document exists that contains all spoken content and descriptions of all meaningful visual information. Accessible via a clearly labelled link.",
+  },
+  {
+    id: "aaa-11",
+    phase: "screen-reader",
+    category: "Audio & Video",
+    title: "Live audio-only content has a real-time text alternative",
+    wcag: "1.2.9",
+    level: "AAA",
+    conditional: "Only if the page broadcasts live audio-only content",
+    whyItMatters:
+      "Live podcasts, radio streams, and audio-only broadcasts are completely inaccessible to deaf users without a live text alternative.",
+    howToTest:
+      "1. Check for any live audio-only streams.\n2. Is there a real-time text equivalent — live captioning, prepared transcript, or live text feed?\n3. Is it synchronised closely enough to be usable?",
+    tool: "Live event testing",
+    passCondition:
+      "Live audio-only content has a real-time text alternative provided, either as live captions or a prepared equivalent text that is updated as the broadcast progresses.",
+  },
+  {
+    id: "aaa-12",
+    phase: "screen-reader",
+    category: "Structure",
+    title: "Purpose of UI components can be programmatically determined",
+    wcag: "1.3.6",
+    level: "AAA",
+    conditional: "WCAG 2.1 — relevant for complex UIs with icons, regions, and interactive components",
+    whyItMatters:
+      "Personalisation tools and AAC (Augmentative and Alternative Communication) devices can substitute familiar icons or labels when the purpose of UI elements is machine-readable.",
+    howToTest:
+      "1. Inspect interactive components with DevTools Accessibility panel.\n2. Do icons and UI controls have their purpose exposed beyond just a name — via ARIA roles, landmark regions, and semantics?\n3. Check: icons have role, buttons have type, form controls have purpose (beyond just label).",
+    tool: "DevTools Accessibility panel + ARIA authoring practices",
+    passCondition:
+      "The purpose of all icons, components, and regions is programmatically determinable using standard HTML semantics and ARIA, enabling personalisation by assistive tech.",
+  },
+  {
+    id: "aaa-13",
+    phase: "screen-reader",
+    category: "Language",
+    title: "Jargon and unusual words have definitions available",
+    wcag: "3.1.3",
+    level: "AAA",
+    whyItMatters:
+      "Technical jargon, idioms, and unusual words are barriers for users with cognitive disabilities, non-native speakers, and screen reader users who cannot guess meaning from context.",
+    howToTest:
+      "1. Read through the page content — identify any technical terms, idioms, or words used in an unusual way.\n2. Is a definition provided? Via: a glossary link, inline definition, <dfn> element, tooltip, or abbr element?\n3. Are idioms and figurative language explained?",
+    tool: "Content review",
+    passCondition:
+      "A mechanism is available to identify definitions of unusual words, technical terms, jargon, and idioms. Definitions are accessible to all users including screen readers.",
+  },
+  {
+    id: "aaa-14",
+    phase: "screen-reader",
+    category: "Language",
+    title: "Abbreviations and acronyms have expanded forms",
+    wcag: "3.1.4",
+    level: "AAA",
+    whyItMatters:
+      "Screen readers can mispronounce acronyms entirely. Cognitive disability users may not know what an abbreviation means. First use should always be expanded.",
+    howToTest:
+      "1. Find all abbreviations and acronyms on the page.\n2. Is the expanded form provided on first use? Via <abbr title='...'>?\n3. Or is there a glossary link?\n4. VoiceOver: navigate to an <abbr> element — does it announce the title attribute?",
+    tool: "Content review + VoiceOver",
+    voiceOverTip: "VoiceOver reads the title attribute of <abbr> elements when navigating to them.",
+    passCondition:
+      "A mechanism is available to expand all abbreviations. First use provides the full form, or a glossary/definition is accessible. <abbr> elements with title attributes are used.",
+  },
+  {
+    id: "aaa-15",
+    phase: "screen-reader",
+    category: "Language",
+    title: "Content readable at lower secondary education level",
+    wcag: "3.1.5",
+    level: "AAA",
+    whyItMatters:
+      "Complex sentence structures and advanced vocabulary exclude users with cognitive disabilities, low literacy, and many non-native speakers. Supplementary content makes it accessible to all.",
+    howToTest:
+      "1. Read the main content — does it use clear, plain language?\n2. If advanced reading level is required: is supplementary content provided? (plain language summary, illustrations, audio version)\n3. Tools: use a readability analyser (Flesch-Kincaid, LIX). Target: lower secondary education level.",
+    tool: "Readability analyser (online tools available)",
+    passCondition:
+      "Content is written at lower secondary education level, OR supplementary content in plain language is provided that explains the complex content.",
+  },
+  {
+    id: "aaa-16",
+    phase: "screen-reader",
+    category: "Language",
+    title: "Pronunciation of ambiguous words is provided",
+    wcag: "3.1.6",
+    level: "AAA",
+    conditional: "Only if the page contains words whose meaning is ambiguous without correct pronunciation",
+    whyItMatters:
+      "Some words have multiple meanings depending on pronunciation (homographs: 'read', 'live', 'wind'). Screen readers may choose the wrong pronunciation, changing meaning entirely.",
+    howToTest:
+      "1. Read through the content for any homographs or words where pronunciation changes meaning.\n2. Is pronunciation indicated via <ruby> annotations, a glossary, or audio pronunciation guides?",
+    tool: "Content review",
+    passCondition:
+      "A mechanism is provided to identify the correct pronunciation of any word where meaning cannot be determined without knowing how it is pronounced.",
+  },
+
+  // Phase 4: Visual — AAA
+  {
+    id: "aaa-17",
+    phase: "visual",
+    category: "Audio & Video",
+    title: "Background audio is absent or can be turned off",
+    wcag: "1.4.7",
+    level: "AAA",
+    conditional: "Only if the page plays background audio alongside speech content",
+    whyItMatters:
+      "Background music or ambient sound makes speech content unintelligible for users with hearing aids or cognitive processing difficulties.",
+    howToTest:
+      "1. Does the page play background audio alongside speech?\n2. If yes: can the background audio be turned off independently?\n3. Or is the background audio at least 20 decibels quieter than the speech foreground?\n4. Short sound effects of 3 seconds or less are exempt.",
+    tool: "Manual audio testing",
+    passCondition:
+      "Background audio does not play, can be turned off, or is at least 20dB lower than foreground speech. Sound effects under 3 seconds are exempt.",
+  },
+  {
+    id: "aaa-18",
+    phase: "visual",
+    category: "Text",
+    title: "Visual text presentation is fully user-customisable",
+    wcag: "1.4.8",
+    level: "AAA",
+    whyItMatters:
+      "Users with dyslexia or low vision need control over how text is presented. Justified text, narrow columns, and fixed colours can make reading impossible for them.",
+    howToTest:
+      "1. Check: can the user select foreground and background colours? (not required to provide a picker, but must not prevent browser/OS settings from working)\n2. Check: is line width no more than 80 characters?\n3. Check: text is not fully justified (left-aligned or right-aligned only).\n4. Check: line spacing is at least 1.5×, paragraph spacing at least 1.5× line height.\n5. Check: text can be resized to 200% without requiring horizontal scroll.",
+    tool: "Visual inspection + browser text settings",
+    passCondition:
+      "Text blocks: ≤80 chars wide, not justified, line spacing ≥1.5×, paragraph spacing ≥1.5× line height. Colour is not forced (user browser settings respected). Resizes to 200% without horizontal scroll.",
+  },
+  {
+    id: "aaa-19",
+    phase: "visual",
+    category: "Timing",
+    title: "No time limits on any part of the content",
+    wcag: "2.2.3",
+    level: "AAA",
+    conditional: "Only if any time limits are present — AAA requires complete removal, not just adjustability",
+    whyItMatters:
+      "Even adjustable time limits are a barrier for some users. AAA requires that time limits do not exist at all, except for real-time events and essential requirements.",
+    howToTest:
+      "1. Check for any time-limited interactions: session timeouts, timed quizzes, countdown forms.\n2. Can they be fully turned off — not just extended?\n3. Exceptions: real-time events (live auctions), time-essential interactions, and 20-hour+ timeouts.",
+    tool: "Manual testing",
+    passCondition:
+      "No time limits are imposed by the content. Exceptions: real-time events where timing is essential, and interactions where time is absolutely required.",
+  },
+  {
+    id: "aaa-20",
+    phase: "visual",
+    category: "Timing",
+    title: "Users can postpone or suppress all interruptions",
+    wcag: "2.2.4",
+    level: "AAA",
+    conditional: "Only if the page generates interruptions like notifications, alerts, or updates",
+    whyItMatters:
+      "Unexpected interruptions break concentration and can cause screen readers to lose their place. Users with cognitive disabilities especially suffer from unexpected content changes.",
+    howToTest:
+      "1. Identify all content that can interrupt the user: chat notifications, breaking news banners, auto-updating content, system alerts.\n2. Can the user postpone or suppress these?\n3. Exception: emergency alerts (safety notices) cannot be suppressed.",
+    tool: "Manual testing",
+    passCondition:
+      "Users can postpone or suppress all interruptions — either individually or globally. Emergency alerts are the only exception.",
+  },
+  {
+    id: "aaa-21",
+    phase: "visual",
+    category: "Timing",
+    title: "Session re-authentication preserves all data",
+    wcag: "2.2.5",
+    level: "AAA",
+    conditional: "Only if the page has authenticated sessions that can expire",
+    whyItMatters:
+      "Slow users — who take longer due to disabilities — may be logged out mid-task. Re-authenticating and finding their work gone is devastating for users who struggle to re-enter data.",
+    howToTest:
+      "1. Let a session expire (or simulate expiry in DevTools).\n2. After re-authenticating, is all form data and user-entered content still present?\n3. Test particularly in multi-step forms and complex entry tasks.",
+    tool: "Manual session testing",
+    passCondition:
+      "After session expiry and re-authentication, all data entered by the user is preserved and the user can continue from where they left off.",
+  },
+  {
+    id: "aaa-22",
+    phase: "visual",
+    category: "Timing",
+    title: "Users warned before data loss from inactivity",
+    wcag: "2.2.6",
+    level: "AAA",
+    conditional: "WCAG 2.1 — only if user data could be lost after a period of inactivity",
+    whyItMatters:
+      "Users who work slowly due to disabilities may not know that inactivity will delete their work. A clear warning prevents unexpected data loss.",
+    howToTest:
+      "1. Identify any scenario where inactivity causes data loss.\n2. Is the user warned — with enough time to act — before the data is deleted?\n3. Is the warning accessible? Announced by screen reader?",
+    tool: "Manual testing + VoiceOver",
+    passCondition:
+      "Users are warned of data loss risk before inactivity causes it. Warning is accessible, gives sufficient time, and is announced by assistive technology.",
+  },
+  {
+    id: "aaa-23",
+    phase: "visual",
+    category: "Animation",
+    title: "No content flashes more than 3 times per second — no exceptions",
+    wcag: "2.3.2",
+    level: "AAA",
+    conditional: "AAA version of 2.3.1 — no luminance threshold exception",
+    whyItMatters:
+      "2.3.1 (AA) allows flashing below a luminance threshold. AAA removes this exception entirely — no content should flash more than 3 times per second, period.",
+    howToTest:
+      "1. Same test as vis-05 (2.3.1) but stricter.\n2. There are no size or luminance exceptions — any flashing over 3 per second fails.",
+    tool: "Visual observation, PEAT tool",
+    passCondition:
+      "Absolutely no content flashes more than 3 times per second. No luminance threshold exceptions. This is a hard limit.",
+  },
+  {
+    id: "aaa-24",
+    phase: "visual",
+    category: "Animation",
+    title: "Motion animation can be disabled by the user",
+    wcag: "2.3.3",
+    level: "AAA",
+    conditional: "WCAG 2.1 — only if the page uses motion animation triggered by interaction",
+    whyItMatters:
+      "Parallax effects, scroll-triggered animations, and page transitions can trigger vestibular disorders and motion sickness. Users must be able to disable them.",
+    howToTest:
+      "1. Enable 'Reduce Motion' in macOS: System Settings → Accessibility → Display → Reduce Motion.\n2. Reload the page — do animations and transitions stop or reduce?\n3. DevTools → Rendering → Emulate CSS media: prefers-reduced-motion.\n4. Check that the CSS prefers-reduced-motion media query is implemented.",
+    tool: "macOS Reduce Motion setting + DevTools",
+    passCondition:
+      "All motion animations triggered by interaction can be disabled via the prefers-reduced-motion media query or a user-accessible control. Essential motion is exempt.",
+  },
+  {
+    id: "aaa-25",
+    phase: "visual",
+    category: "Navigation",
+    title: "Users can locate themselves within a set of pages",
+    wcag: "2.4.8",
+    level: "AAA",
+    whyItMatters:
+      "Users with cognitive disabilities can lose their place in a multi-page site. Breadcrumbs, highlighted current page in nav, or site map give essential location context.",
+    howToTest:
+      "1. Navigate to a page several levels deep in the site.\n2. Is there a breadcrumb trail? Or is the current page highlighted in navigation?\n3. Or is there a site map showing current location?\n4. Is this mechanism accessible — keyboard navigable, screen reader compatible?",
+    tool: "Visual inspection + VoiceOver",
+    voiceOverTip: "Breadcrumbs should have aria-label='Breadcrumb' and aria-current='page' on the current item.",
+    passCondition:
+      "A mechanism is available to identify the user's location within the site — breadcrumbs, current-page indicator in navigation, or site map.",
+  },
+  {
+    id: "aaa-26",
+    phase: "visual",
+    category: "Navigation",
+    title: "Page content is organised with section headings",
+    wcag: "2.4.10",
+    level: "AAA",
+    whyItMatters:
+      "Long pages without section headings force screen reader and keyboard users to listen to or scroll through entire blocks of content. Headings create navigable structure.",
+    howToTest:
+      "1. Read through the page content — are there logical sections of related content?\n2. Does each section have a heading that describes it?\n3. This goes beyond 1.3.1 (which requires correct heading markup) — AAA requires headings are actually used to organise content into sections.",
+    tool: "WAVE headings view + VoiceOver",
+    passCondition:
+      "All sections of content within a page are labelled with a heading. No significant block of content exists without a heading to introduce it.",
+  },
+  {
+    id: "aaa-27",
+    phase: "visual",
+    category: "Navigation",
+    title: "Context changes only happen on user request",
+    wcag: "3.2.5",
+    level: "AAA",
+    whyItMatters:
+      "3.2.1 and 3.2.2 (AA) prevent context changes from focus and input. AAA extends this — no context change should happen unless explicitly requested by the user.",
+    howToTest:
+      "1. Interact with the entire page — hover, focus, scroll, click.\n2. Does any action trigger an unexpected context change?\n3. Includes: new windows opening without warning, page sections reloading, navigation triggered by anything other than an explicit action.\n4. Settings that change behaviour are exempt if clearly labelled.",
+    tool: "Manual interaction testing",
+    passCondition:
+      "Context changes only occur when the user explicitly requests them. No automatic context changes on hover, scroll, focus, or passive interaction.",
+  },
+
+  // Phase 5: Code — AAA
+  {
+    id: "aaa-28",
+    phase: "code",
+    category: "Navigation",
+    title: "Link purpose is clear from link text alone — no context needed",
+    wcag: "2.4.9",
+    level: "AAA",
+    whyItMatters:
+      "2.4.4 (AA) allows link purpose to be determined from surrounding context. AAA removes this — the link text alone must communicate the destination, without any surrounding content.",
+    howToTest:
+      "1. Open VoiceOver Rotor → Links.\n2. Read every link in isolation — can you understand its destination from the text alone?\n3. Generic links ('Read more', 'Click here', 'Läs mer') fail even with good surrounding context at AAA.",
+    tool: "VoiceOver Rotor → Links",
+    voiceOverTip: "Rotor: VO+U → Links. Read each link without looking at surrounding page content.",
+    passCondition:
+      "Every link's purpose is unambiguous from its text alone, without needing to read surrounding content. No generic link text is used.",
+  },
+  {
+    id: "aaa-29",
+    phase: "code",
+    category: "Forms",
+    title: "Context-sensitive help is available for all inputs",
+    wcag: "3.3.5",
+    level: "AAA",
+    conditional: "Only if the page has forms or user input",
+    whyItMatters:
+      "Users with cognitive disabilities need help understanding what is expected in each field. Help text, examples, and hints prevent errors rather than just flagging them after the fact.",
+    howToTest:
+      "1. For each form field: is there help text explaining the expected format or content?\n2. Is it context-sensitive — relevant to the specific field, not generic?\n3. Is it accessible to screen readers — associated via aria-describedby or visible on focus?",
+    tool: "DevTools + VoiceOver",
+    voiceOverTip: "Tab to each field — does VoiceOver announce help text after the field label?",
+    passCondition:
+      "Context-sensitive help is available for every input field. Help text is visible, correctly associated with its field, and announced by screen readers.",
+  },
+  {
+    id: "aaa-30",
+    phase: "code",
+    category: "Forms",
+    title: "All form submissions can be reviewed, corrected, or reversed",
+    wcag: "3.3.6",
+    level: "AAA",
+    whyItMatters:
+      "3.3.4 (AA) only requires undo/confirm for legal and financial submissions. AAA extends this to ALL form submissions — any accidental submit can be corrected.",
+    howToTest:
+      "1. Find every form submission on the site.\n2. Can every submission be: reversed after submitting, previewed before submitting, or corrected in a confirmation step?\n3. This applies to newsletter signups, contact forms, search — not just purchases.",
+    tool: "Manual form testing",
+    passCondition:
+      "All form submissions are either reversible, include a review/confirm step, or allow error correction before final submission. No exceptions for non-consequential forms.",
+  },
+  {
+    id: "aaa-31",
+    phase: "code",
+    category: "Forms",
+    title: "Authentication requires no cognitive function test at all",
+    wcag: "3.3.9",
+    level: "AAA",
+    conditional: "WCAG 2.2 — enhanced version of 3.3.8",
+    whyItMatters:
+      "3.3.8 (AA) allows object recognition as an alternative to text CAPTCHA. AAA removes this entirely — authentication must require no cognitive test whatsoever.",
+    howToTest:
+      "1. Go through all authentication flows.\n2. Is any cognitive test present — including image recognition, selecting objects, solving puzzles?\n3. AAA acceptable: passkeys, magic links, email codes where no transcription or recognition is required.",
+    tool: "Manual testing",
+    passCondition:
+      "Authentication requires no cognitive function test of any kind. No CAPTCHA, image recognition, or puzzle. Passkeys, magic links, and similar are acceptable.",
+  },
 ];
 
 export const PHASES = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -15,6 +15,7 @@ import {
   Lightbulb,
   Wrench,
   BookOpen,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,6 +70,25 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
   const [project, setProject] = useState<AuditProject | null>(initialProject);
   const [page, setPage] = useState<AuditPage | null>(initialPage);
   const [selectedCheckId, setSelectedCheckId] = useState<string | null>(initialCheck?.id ?? null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [notesDraft, setNotesDraft] = useState<string>(
+    initialPage?.checks.find((c) => c.checkId === initialCheck?.id)?.notes ?? ""
+  );
+
+  const notesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingNotesRef = useRef<{ checkId: string; notes: string } | null>(null);
+  // Keep a ref to the latest project/page so debounced saves always use fresh data
+  const projectRef = useRef(project);
+  const pageRef = useRef(page);
+  projectRef.current = project;
+  pageRef.current = page;
+
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const triggerSaved = useCallback(() => {
+    setSavedAt(Date.now());
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    savedTimerRef.current = setTimeout(() => setSavedAt(null), 2500);
+  }, []);
 
   useEffect(() => {
     if (!project || !page) {
@@ -77,46 +97,81 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
     }
   }, [project, page, projectId, router]);
 
+  // When switching checks: flush any pending notes save first
+  const flushPendingNotes = useCallback(() => {
+    if (notesDebounceRef.current) {
+      clearTimeout(notesDebounceRef.current);
+      notesDebounceRef.current = null;
+    }
+    const pending = pendingNotesRef.current;
+    if (!pending) return;
+    pendingNotesRef.current = null;
+    const currentProject = projectRef.current;
+    const currentPage = pageRef.current;
+    if (!currentProject || !currentPage) return;
+    const existing = currentPage.checks.find((c) => c.checkId === pending.checkId);
+    if (!existing) return;
+    const updated = updateCheckResult(currentProject, pageId, { ...existing, notes: pending.notes });
+    saveProject(updated);
+    projectRef.current = updated;
+    pageRef.current = updated.pages.find((p) => p.id === pageId) ?? null;
+    setProject(updated);
+    setPage(updated.pages.find((p) => p.id === pageId) ?? null);
+  }, [pageId]);
+
   // Update selected check when phase changes
   useEffect(() => {
     if (!page) return;
+    flushPendingNotes();
     const firstPending = ALL_CHECKS.find(
       (c) => c.phase === activePhase &&
         page.checks.find((r) => r.checkId === c.id)?.status === "pending"
     );
-    setSelectedCheckId(
-      firstPending?.id ?? ALL_CHECKS.find((c) => c.phase === activePhase)?.id ?? null
-    );
+    const nextId = firstPending?.id ?? ALL_CHECKS.find((c) => c.phase === activePhase)?.id ?? null;
+    setSelectedCheckId(nextId);
+    setNotesDraft(page.checks.find((c) => c.checkId === nextId)?.notes ?? "");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePhase]);
 
   const updateCheck = useCallback(
-    (checkId: string, status: CheckStatus, severity?: Severity, notes?: string) => {
+    (checkId: string, status: CheckStatus, severity?: Severity) => {
       if (!project || !page) return;
       const existing = page.checks.find((c) => c.checkId === checkId)!;
       const updated = updateCheckResult(project, pageId, {
         checkId,
         status,
         severity: status === "fail" || status === "partial" ? (severity ?? existing.severity) : undefined,
-        notes: notes ?? existing.notes,
+        notes: existing.notes,
       });
       saveProject(updated);
       setProject(updated);
       setPage(updated.pages.find((p) => p.id === pageId)!);
+      triggerSaved();
     },
-    [project, page, pageId]
+    [project, page, pageId, triggerSaved]
   );
 
-  const updateNotes = useCallback(
+  const handleNotesChange = useCallback(
     (checkId: string, notes: string) => {
-      if (!project || !page) return;
-      const existing = page.checks.find((c) => c.checkId === checkId)!;
-      const updated = updateCheckResult(project, pageId, { ...existing, notes });
-      saveProject(updated);
-      setProject(updated);
-      setPage(updated.pages.find((p) => p.id === pageId)!);
+      setNotesDraft(notes);
+      pendingNotesRef.current = { checkId, notes };
+      if (notesDebounceRef.current) clearTimeout(notesDebounceRef.current);
+      notesDebounceRef.current = setTimeout(() => {
+        notesDebounceRef.current = null;
+        const currentProject = projectRef.current;
+        const currentPage = pageRef.current;
+        if (!currentProject || !currentPage) return;
+        const existing = currentPage.checks.find((c) => c.checkId === checkId);
+        if (!existing) return;
+        pendingNotesRef.current = null;
+        const updated = updateCheckResult(currentProject, pageId, { ...existing, notes });
+        saveProject(updated);
+        setProject(updated);
+        setPage(updated.pages.find((p) => p.id === pageId)!);
+        triggerSaved();
+      }, 600);
     },
-    [project, page, pageId]
+    [pageId, triggerSaved]
   );
 
   if (!project || !page) return null;
@@ -148,6 +203,12 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
+            {savedAt && (
+              <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 animate-in fade-in">
+                <Check className="w-3 h-3" />
+                Saved
+              </span>
+            )}
             <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
               <Progress value={pct} className="w-24 h-1.5" />
               <span>{done}/{total}</span>
@@ -218,7 +279,11 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                           className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-accent/30 transition-colors ${
                             isSelected ? "bg-accent text-accent-foreground" : ""
                           }`}
-                          onClick={() => setSelectedCheckId(check.id)}
+                          onClick={() => {
+                          flushPendingNotes();
+                          setSelectedCheckId(check.id);
+                          setNotesDraft(page.checks.find((r) => r.checkId === check.id)?.notes ?? "");
+                        }}
                         >
                           <span className="shrink-0">{statusConfig[status].icon}</span>
                           <span className="text-xs truncate flex-1">{check.title}</span>
@@ -386,8 +451,8 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                   </label>
                   <Textarea
                     placeholder="e.g. 'The contact form submit button has aria-label='btn1' — not descriptive. Fails on all form pages.'"
-                    value={selectedResult.notes}
-                    onChange={(e) => updateNotes(selectedCheck.id, e.target.value)}
+                    value={notesDraft}
+                    onChange={(e) => handleNotesChange(selectedCheck.id, e.target.value)}
                     className="text-sm min-h-[80px] resize-none"
                   />
                 </div>
@@ -398,8 +463,13 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                     variant="outline"
                     size="sm"
                     onClick={() => {
+                      flushPendingNotes();
                       const idx = phaseChecks.findIndex((c) => c.id === selectedCheck.id);
-                      if (idx > 0) setSelectedCheckId(phaseChecks[idx - 1].id);
+                      if (idx > 0) {
+                        const prev = phaseChecks[idx - 1];
+                        setSelectedCheckId(prev.id);
+                        setNotesDraft(page.checks.find((r) => r.checkId === prev.id)?.notes ?? "");
+                      }
                     }}
                     disabled={phaseChecks.findIndex((c) => c.id === selectedCheck.id) === 0}
                   >
@@ -408,11 +478,13 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                   <Button
                     size="sm"
                     onClick={() => {
+                      flushPendingNotes();
                       const idx = phaseChecks.findIndex((c) => c.id === selectedCheck.id);
                       if (idx < phaseChecks.length - 1) {
-                        setSelectedCheckId(phaseChecks[idx + 1].id);
+                        const next = phaseChecks[idx + 1];
+                        setSelectedCheckId(next.id);
+                        setNotesDraft(page.checks.find((r) => r.checkId === next.id)?.notes ?? "");
                       } else {
-                        // Move to next phase
                         const phaseIdx = PHASES.findIndex((p) => p.id === activePhase);
                         if (phaseIdx < PHASES.length - 1) {
                           setActivePhase(PHASES[phaseIdx + 1].id);
