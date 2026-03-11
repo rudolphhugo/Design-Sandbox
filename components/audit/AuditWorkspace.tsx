@@ -184,7 +184,7 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
   const { done, total, pct } = getPageProgress(page);
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-muted/40 overflow-hidden">
       {/* Top bar */}
       <div className="border-b border-border/50 bg-background/80 backdrop-blur-sm shrink-0">
         <div className="px-4 py-3 flex items-center justify-between gap-4">
@@ -276,8 +276,10 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                       return (
                         <button
                           key={check.id}
-                          className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-accent/30 transition-colors ${
-                            isSelected ? "bg-accent text-accent-foreground" : ""
+                          className={`w-full flex items-center gap-2.5 pr-4 pl-[14px] py-2.5 text-left hover:bg-accent/30 transition-colors border-l-2 ${
+                            isSelected
+                              ? "border-primary bg-primary/5 text-foreground font-medium"
+                              : "border-transparent text-muted-foreground"
                           }`}
                           onClick={() => {
                           flushPendingNotes();
@@ -301,14 +303,14 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
         </div>
 
         {/* Right: Check detail */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-muted/40">
           {selectedCheck && selectedResult ? (
             <div className="max-w-2xl mx-auto px-6 py-6 space-y-6">
               {/* Check header */}
               <div className="space-y-2">
                 <div className="flex items-start gap-3">
                   <div className="flex-1">
-                    <h2 className="text-base font-semibold leading-snug">{selectedCheck.title}</h2>
+                    <h2 className="text-xl font-semibold leading-snug">{selectedCheck.title}</h2>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <Badge variant="outline" className="text-xs">
                         WCAG {selectedCheck.wcag}
@@ -324,18 +326,15 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                 </div>
 
                 {/* Why it matters */}
-                <div className="rounded-lg bg-muted/40 border border-border/40 p-3.5 flex gap-2.5">
-                  <Info className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedCheck.whyItMatters}
-                  </p>
-                </div>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {selectedCheck.whyItMatters}
+                </p>
 
                 {/* Conditional notice */}
                 {selectedCheck.conditional && (
-                  <div className="rounded-lg bg-amber-500/5 border border-amber-500/20 px-3.5 py-2.5 flex gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                  <div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3.5 py-2.5 flex gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-900 dark:text-amber-200">
                       <strong>Conditional check:</strong> {selectedCheck.conditional}
                     </p>
                   </div>
@@ -344,8 +343,8 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
 
               {/* How to test */}
               <div className="space-y-2.5">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <BookOpen className="w-4 h-4" />
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <BookOpen className="w-3.5 h-3.5" />
                   How to test
                 </div>
                 <div className="rounded-lg border border-border/50 bg-card divide-y divide-border/30 overflow-hidden">
@@ -369,18 +368,18 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
 
                 {/* VoiceOver tip */}
                 {selectedCheck.voiceOverTip && (
-                  <div className="rounded-lg bg-blue-500/5 border border-blue-500/20 px-3.5 py-2.5 flex gap-2">
-                    <Lightbulb className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-blue-700 dark:text-blue-400">
+                  <div className="rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3.5 py-2.5 flex gap-2">
+                    <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-blue-900 dark:text-blue-200">
                       <strong>VoiceOver:</strong> {selectedCheck.voiceOverTip}
                     </p>
                   </div>
                 )}
 
                 {/* Pass condition */}
-                <div className="rounded-lg bg-green-500/5 border border-green-500/20 px-3.5 py-2.5 flex gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-green-700 dark:text-green-400">
+                <div className="rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 px-3.5 py-2.5 flex gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-green-900 dark:text-green-200">
                     <strong>Pass when:</strong> {selectedCheck.passCondition}
                   </p>
                 </div>
@@ -388,7 +387,7 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
 
               {/* Result */}
               <div className="space-y-4 border-t border-border/50 pt-5">
-                <div className="text-sm font-semibold">Your result</div>
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Your result</div>
 
                 {/* Status buttons */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -399,12 +398,12 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                       className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${
                         selectedResult.status === s
                           ? s === "pass"
-                            ? "bg-green-500/10 border-green-500/40 text-green-700 dark:text-green-400"
+                            ? "bg-green-500/20 border-green-500 text-green-800 dark:text-green-300"
                             : s === "fail"
-                            ? "bg-red-500/10 border-red-500/40 text-red-700 dark:text-red-400"
+                            ? "bg-red-500/20 border-red-500 text-red-800 dark:text-red-300"
                             : s === "partial"
-                            ? "bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-400"
-                            : "bg-accent border-border text-foreground"
+                            ? "bg-amber-500/20 border-amber-500 text-amber-800 dark:text-amber-300"
+                            : "bg-zinc-500/20 border-zinc-400 text-zinc-700 dark:text-zinc-300"
                           : "border-border hover:bg-accent/50 text-muted-foreground"
                       }`}
                     >

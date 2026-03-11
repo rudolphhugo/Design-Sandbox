@@ -11,7 +11,6 @@ import {
     AlertCircle,
     MinusCircle,
     Circle,
-    Info,
     Lightbulb,
     Wrench,
     BookOpen,
@@ -21,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Select,
     SelectContent,
@@ -35,7 +35,7 @@ import {
     getPhaseProgress,
 } from "@/lib/audit-storage";
 import { ALL_CHECKS, PHASES } from "@/lib/audit-checks";
-import type { AuditProject, CheckStatus, Severity, Phase } from "@/lib/audit-types";
+import type { AuditProject, CheckStatus, Severity, Phase, Role } from "@/lib/audit-types";
 
 interface Props {
     projectId: string;
@@ -51,10 +51,20 @@ const statusConfig: Record<CheckStatus, { label: string; icon: React.ReactNode; 
 
 const severityOptions: Severity[] = ["critical", "high", "medium", "low"];
 
+const roleConfig: Record<Role, { label: string; className: string }> = {
+    developer: { label: "Developer", className: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30" },
+    designer:  { label: "Designer",  className: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30" },
+    content:   { label: "Content",   className: "bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/30" },
+    qa:        { label: "QA",        className: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30" },
+};
+
+const ALL_ROLES: Role[] = ["developer", "designer", "content", "qa"];
+
 export function CriteriaWorkspace({ projectId }: Props) {
     const router = useRouter();
     const [activePhase, setActivePhase] = useState<Phase>("automated");
     const [collapsedPhases, setCollapsedPhases] = useState<Set<Phase>>(new Set());
+    const [activeRoles, setActiveRoles] = useState<Set<Role>>(new Set());
 
     const initialProject = typeof window !== "undefined" ? (getProject(projectId) ?? null) : null;
     const initialCheck = ALL_CHECKS.find((c) => c.phase === "automated") ?? null;
@@ -151,7 +161,10 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
     if (!project) return null;
 
-    const phaseChecks = ALL_CHECKS.filter((c) => c.phase === activePhase);
+    const filterByRole = (checks: typeof ALL_CHECKS) =>
+        activeRoles.size === 0 ? checks : checks.filter(c => c.roles?.some(r => activeRoles.has(r)));
+
+    const phaseChecks = filterByRole(ALL_CHECKS.filter((c) => c.phase === activePhase));
     const selectedCheck = selectedCheckId ? ALL_CHECKS.find((c) => c.id === selectedCheckId) : null;
 
     // Calculate total project progress
@@ -162,7 +175,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
     const pct = totalChecks === 0 ? 0 : Math.round((completedChecks / totalChecks) * 100);
 
     return (
-        <div className="h-screen flex flex-col bg-background overflow-hidden">
+        <div className="h-screen flex flex-col bg-muted/40 overflow-hidden">
             {/* Top bar */}
             <div className="border-b border-border/50 bg-background/80 backdrop-blur-sm shrink-0">
                 <div className="px-4 py-3 flex items-center justify-between gap-4">
@@ -176,8 +189,8 @@ export function CriteriaWorkspace({ projectId }: Props) {
                             <ArrowLeft className="w-4 h-4" />
                         </Button>
                         <div className="min-w-0">
-                            <h1 className="text-sm font-semibold truncate">Batch Audit: By Criteria</h1>
-                            <p className="text-xs text-muted-foreground truncate">{project.clientName}</p>
+                            <h1 className="text-base font-semibold truncate">Batch Audit: By Criteria</h1>
+                            <p className="text-sm text-muted-foreground truncate">{project.clientName}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
@@ -205,17 +218,49 @@ export function CriteriaWorkspace({ projectId }: Props) {
             <div className="flex flex-1 overflow-hidden">
                 {/* Left: Phase + Check list */}
                 <div className="w-72 shrink-0 border-r border-border/50 overflow-y-auto">
+                    {/* Role filters */}
+                    <div className="px-3 py-2.5 border-b border-border/30 flex flex-wrap gap-1.5">
+                        {ALL_ROLES.map((role) => {
+                            const active = activeRoles.has(role);
+                            return (
+                                <button
+                                    key={role}
+                                    onClick={() => setActiveRoles(prev => {
+                                        const next = new Set(prev);
+                                        active ? next.delete(role) : next.add(role);
+                                        return next;
+                                    })}
+                                    className={`px-2 py-0.5 rounded-full border text-[11px] font-medium transition-all ${
+                                        active ? roleConfig[role].className : "border-border/50 text-muted-foreground hover:border-foreground/30"
+                                    }`}
+                                >
+                                    {roleConfig[role].label}
+                                </button>
+                            );
+                        })}
+                        {activeRoles.size > 0 && (
+                            <button
+                                onClick={() => setActiveRoles(new Set())}
+                                className="px-2 py-0.5 rounded-full border border-border/50 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
+
                     {PHASES.map((phase) => {
-                        // Aggregate phase progress across ALL pages
-                        const pt = ALL_CHECKS.filter(c => c.phase === phase.id).length * project.pages.length;
-                        const pd = project.pages.reduce((acc, page) => {
-                            const { done } = getPhaseProgress(page, phase.id);
-                            return acc + done;
-                        }, 0);
+                        // Count criteria done = at least one page has a non-pending result
+                        const phaseCheckIds = ALL_CHECKS.filter(c => c.phase === phase.id).map(c => c.id);
+                        const pt = phaseCheckIds.length;
+                        const pd = phaseCheckIds.filter(checkId =>
+                            project.pages.some(page =>
+                                page.checks.find(r => r.checkId === checkId)?.status !== "pending"
+                            )
+                        ).length;
 
                         const isActive = activePhase === phase.id;
                         const isCollapsed = collapsedPhases.has(phase.id);
-                        const phaseChecksLocal = ALL_CHECKS.filter((c) => c.phase === phase.id);
+                        const phaseChecksLocal = filterByRole(ALL_CHECKS.filter((c) => c.phase === phase.id));
 
                         return (
                             <div key={phase.id}>
@@ -239,8 +284,8 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                 >
                                     <span className="text-sm">{phase.emoji}</span>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-xs font-semibold truncate">{phase.label}</div>
-                                        <div className="text-[10px] text-muted-foreground">{pd}/{pt} done globally</div>
+                                        <div className="text-sm font-semibold truncate">{phase.label}</div>
+                                        <div className="text-xs text-muted-foreground">{pd}/{pt} done</div>
                                     </div>
                                     {isCollapsed || !isActive ? (
                                         <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
@@ -267,8 +312,11 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                             return (
                                                 <button
                                                     key={check.id}
-                                                    className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left hover:bg-accent/30 transition-colors ${isSelected ? "bg-accent text-accent-foreground" : ""
-                                                        }`}
+                                                    className={`w-full flex items-center gap-2.5 pr-4 pl-[14px] py-2.5 text-left hover:bg-accent/30 transition-colors border-l-2 ${
+                                        isSelected
+                                            ? "border-primary bg-primary/5 text-foreground font-medium"
+                                            : "border-transparent text-muted-foreground"
+                                    }`}
                                                     onClick={() => {
                                                         setSelectedCheckId(check.id);
                                                     }}
@@ -289,211 +337,234 @@ export function CriteriaWorkspace({ projectId }: Props) {
                 </div>
 
                 {/* Right: Check detail and Pages list */}
-                <div className="flex-1 overflow-y-auto bg-muted/10">
+                <div className="flex-1 overflow-y-auto bg-muted/40">
                     {selectedCheck ? (
-                        <div className="max-w-4xl mx-auto px-6 py-6 space-y-8">
-                            {/* Check Description Card */}
-                            <div className="rounded-xl border border-border/50 bg-card p-5 space-y-4 shadow-sm">
-                                <div className="flex items-start gap-3">
-                                    <div className="flex-1">
-                                        <h2 className="text-lg font-semibold leading-snug">{selectedCheck.title}</h2>
-                                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                            <Badge variant="outline" className="text-xs">
-                                                WCAG {selectedCheck.wcag}
-                                            </Badge>
-                                            <Badge variant="outline" className="text-xs">
-                                                Level {selectedCheck.level}
-                                            </Badge>
-                                            <span className="text-xs text-muted-foreground capitalize">
-                                                {selectedCheck.category}
+                        <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+
+                            {/* Always-visible header */}
+                            <div className="space-y-3">
+                                <div>
+                                    <h2 className="text-3xl font-semibold leading-snug">{selectedCheck.title}</h2>
+                                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                        <Badge variant="outline" className="text-xs">WCAG {selectedCheck.wcag}</Badge>
+                                        <Badge variant="outline" className="text-xs">Level {selectedCheck.level}</Badge>
+                                        <span className="text-xs text-muted-foreground capitalize">{selectedCheck.category}</span>
+                                        {selectedCheck.roles?.map(role => (
+                                            <span key={role} className={`px-2 py-0.5 rounded-full border text-[11px] font-medium ${roleConfig[role].className}`}>
+                                                {roleConfig[role].label}
                                             </span>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
+                                <p className="text-base leading-relaxed text-muted-foreground">{selectedCheck.whyItMatters}</p>
+                            </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
-                                    {/* Why it matters */}
-                                    <div className="space-y-1.5">
-                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                            <Info className="w-3.5 h-3.5" /> Why it matters
+                            {/* Tabs */}
+                            <Tabs defaultValue="audit">
+                                <TabsList variant="line">
+                                    <TabsTrigger value="audit" className="text-sm">Audit</TabsTrigger>
+                                    <TabsTrigger value="reference" className="text-sm">Tools</TabsTrigger>
+                                </TabsList>
+
+                                {/* Tab 1: Audit — what to check + pass condition + pages */}
+                                <TabsContent value="audit" className="mt-6 space-y-6">
+
+                                    {/* What to check */}
+                                    <div className="space-y-3">
+                                        <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                                            <BookOpen className="w-3.5 h-3.5" /> What to check
                                         </div>
-                                        <p className="text-muted-foreground leading-relaxed">
-                                            {selectedCheck.whyItMatters}
-                                        </p>
+                                        <div className="rounded-lg border border-border/50 bg-card overflow-hidden">
+                                            {selectedCheck.howToTest.split("\n").map((step, i) => (
+                                                <div key={i} className="px-5 py-4 flex gap-4 text-sm">
+                                                    <span className="text-muted-foreground shrink-0 font-mono text-sm w-5 text-right mt-px">
+                                                        {i + 1}.
+                                                    </span>
+                                                    <span className="leading-relaxed">{step.replace(/^\d+\.\s*/, "")}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
 
                                     {/* Pass condition */}
-                                    <div className="space-y-1.5">
-                                        <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600 dark:text-green-500">
-                                            <CheckCircle2 className="w-3.5 h-3.5" /> Pass condition
+                                    <div className="rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 px-4 py-3 flex gap-3">
+                                        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+                                        <div>
+                                            <div className="text-[11px] font-semibold uppercase tracking-widest text-green-700 dark:text-green-500 mb-1">Passes when</div>
+                                            <p className="text-sm text-green-900 dark:text-green-200 leading-relaxed">{selectedCheck.passCondition}</p>
                                         </div>
-                                        <p className="text-muted-foreground leading-relaxed">
-                                            {selectedCheck.passCondition}
-                                        </p>
                                     </div>
-                                </div>
 
-                                {selectedCheck.conditional && (
-                                    <div className="rounded-lg bg-amber-500/5 border border-amber-500/20 px-3.5 py-2.5 flex items-start gap-2 text-sm mt-2">
-                                        <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                                        <span className="text-amber-700 dark:text-amber-400">
-                                            <strong>Conditional check:</strong> {selectedCheck.conditional}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
+                                    {selectedCheck.conditional && (
+                                        <div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3.5 py-2.5 flex items-start gap-2 text-sm">
+                                            <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                            <span className="text-amber-900 dark:text-amber-200">
+                                                <strong>Conditional check:</strong> {selectedCheck.conditional}
+                                            </span>
+                                        </div>
+                                    )}
 
-                            {/* Global "Pass All" button (Optional enhancement) */}
-                            <div className="flex justify-between items-end border-b border-border/50 pb-2">
-                                <h3 className="text-sm font-semibold">Pages ({project.pages.length})</h3>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 text-xs bg-green-500/5 hover:bg-green-500/10 text-green-700 border-green-500/20"
-                                    onClick={() => {
-                                        let updated = { ...project };
-                                        updated.pages.forEach(p => {
-                                            const existing = p.checks.find(c => c.checkId === selectedCheck.id);
-                                            if (existing && existing.status === "pending") {
-                                                updated = updateCheckResult(updated, p.id, {
-                                                    ...existing,
-                                                    status: "pass"
+                                    {/* Pages header */}
+                                    <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                                        <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                            Pages ({project.pages.length})
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-7 text-xs"
+                                            onClick={() => {
+                                                let updated = { ...project };
+                                                updated.pages.forEach(p => {
+                                                    const existing = p.checks.find(c => c.checkId === selectedCheck.id);
+                                                    if (existing && existing.status === "pending") {
+                                                        updated = updateCheckResult(updated, p.id, { ...existing, status: "pass" });
+                                                    }
                                                 });
-                                            }
-                                        });
-                                        saveProject(updated);
-                                        setProject(updated);
-                                        triggerSaved();
-                                    }}
-                                >
-                                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
-                                    Pass All Pending
-                                </Button>
-                            </div>
+                                                saveProject(updated);
+                                                setProject(updated);
+                                                triggerSaved();
+                                            }}
+                                        >
+                                            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+                                            Pass All Pending
+                                        </Button>
+                                    </div>
 
-                            {/* Pages Grid/List */}
-                            <div className="space-y-4">
-                                {project.pages.map((page) => {
-                                    const result = page.checks.find(c => c.checkId === selectedCheck.id);
-                                    if (!result) return null;
-
-                                    const draftNotes = notesDrafts[page.id] ?? result.notes;
-
-                                    return (
-                                        <div key={page.id} className="rounded-xl border border-border/50 bg-card p-4 shadow-sm flex flex-col md:flex-row gap-5">
-                                            {/* Page Info */}
-                                            <div className="md:w-1/3 shrink-0">
-                                                <div className="font-medium text-sm mb-1">{page.name}</div>
-                                                {page.url && (
-                                                    <a href={page.url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline truncate block max-w-full">
-                                                        {page.url}
-                                                    </a>
-                                                )}
-                                            </div>
-
-                                            {/* Controls */}
-                                            <div className="flex-1 space-y-4">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {(["pass", "fail", "partial", "na"] as CheckStatus[]).map((s) => (
-                                                        <button
-                                                            key={s}
-                                                            onClick={() => updateCheck(page.id, selectedCheck.id, s, result.severity)}
-                                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-medium transition-all ${result.status === s
-                                                                    ? s === "pass"
-                                                                        ? "bg-green-500/10 border-green-500/40 text-green-700 dark:text-green-400"
-                                                                        : s === "fail"
-                                                                            ? "bg-red-500/10 border-red-500/40 text-red-700 dark:text-red-400"
-                                                                            : s === "partial"
-                                                                                ? "bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-400"
-                                                                                : "bg-accent border-border text-foreground"
-                                                                    : "border-border hover:bg-accent/50 text-muted-foreground"
-                                                                }`}
-                                                        >
-                                                            {statusConfig[s].icon}
-                                                            {statusConfig[s].label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                {/* Severity & Notes row */}
-                                                <div className="flex flex-col md:flex-row gap-3">
-                                                    {(result.status === "fail" || result.status === "partial") && (
-                                                        <div className="w-full md:w-32 shrink-0">
-                                                            <Select
-                                                                value={result.severity ?? ""}
-                                                                onValueChange={(v) =>
-                                                                    updateCheck(page.id, selectedCheck.id, result.status, v as Severity)
-                                                                }
-                                                            >
-                                                                <SelectTrigger className="h-8 text-xs">
-                                                                    <SelectValue placeholder="Severity..." />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {severityOptions.map((s) => (
-                                                                        <SelectItem key={s} value={s} className="capitalize text-xs">
-                                                                            {s}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
+                                    {/* Pages list */}
+                                    {project.pages.length === 0 ? (
+                                        <div className="text-center py-12 text-sm text-muted-foreground border border-dashed rounded-xl">
+                                            No pages added to this project yet.
+                                        </div>
+                                    ) : (
+                                        <div className="rounded-xl border border-border/50 overflow-hidden divide-y divide-border/50">
+                                            {project.pages.map((page) => {
+                                                const result = page.checks.find(c => c.checkId === selectedCheck.id);
+                                                if (!result) return null;
+                                                const draftNotes = notesDrafts[page.id] ?? result.notes;
+                                                return (
+                                                    <div key={page.id} className="bg-card px-4 py-3 space-y-2">
+                                                        {/* Row 1: icon + name/url + buttons */}
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="shrink-0">{statusConfig[result.status].icon}</div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="text-sm font-medium truncate">{page.name}</div>
+                                                                {page.url && (
+                                                                    <a href={page.url} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate block">
+                                                                        {page.url}
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                            <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
+                                                                {(["pass", "fail", "partial", "na"] as CheckStatus[]).map((s) => (
+                                                                    <button
+                                                                        key={s}
+                                                                        onClick={() => updateCheck(page.id, selectedCheck.id, s, result.severity)}
+                                                                        className={`flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-medium transition-all ${
+                                                                            result.status === s
+                                                                                ? s === "pass" ? "bg-green-500/20 border-green-500 text-green-800 dark:text-green-300"
+                                                                                : s === "fail" ? "bg-red-500/20 border-red-500 text-red-800 dark:text-red-300"
+                                                                                : s === "partial" ? "bg-amber-500/20 border-amber-500 text-amber-800 dark:text-amber-300"
+                                                                                : "bg-zinc-500/20 border-zinc-400 text-zinc-700 dark:text-zinc-300"
+                                                                                : "border-border hover:bg-accent/50 text-muted-foreground"
+                                                                        }`}
+                                                                    >
+                                                                        {statusConfig[s].icon}
+                                                                        {statusConfig[s].label}
+                                                                    </button>
+                                                                ))}
+                                                                {(result.status === "fail" || result.status === "partial") && (
+                                                                    <Select
+                                                                        value={result.severity ?? ""}
+                                                                        onValueChange={(v) => updateCheck(page.id, selectedCheck.id, result.status, v as Severity)}
+                                                                    >
+                                                                        <SelectTrigger className="h-7 text-xs w-28">
+                                                                            <SelectValue placeholder="Severity..." />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {severityOptions.map((s) => (
+                                                                                <SelectItem key={s} value={s} className="capitalize text-xs">{s}</SelectItem>
+                                                                            ))}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                    <Textarea
-                                                        placeholder="Findings or notes for this page..."
-                                                        value={draftNotes}
-                                                        onChange={(e) => handleNotesChange(page.id, selectedCheck.id, e.target.value)}
-                                                        className="text-xs min-h-[40px] h-[40px] resize-y flex-1"
-                                                    />
-                                                </div>
+                                                        {/* Row 2: notes */}
+                                                        <div className="pl-7">
+                                                            <Textarea
+                                                                placeholder="Notes..."
+                                                                value={draftNotes}
+                                                                onChange={(e) => handleNotesChange(page.id, selectedCheck.id, e.target.value)}
+                                                                className="text-xs min-h-[60px] resize-y"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Navigation */}
+                                    <div className="flex justify-between pt-4 border-t border-border/30">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                const idx = phaseChecks.findIndex((c) => c.id === selectedCheck.id);
+                                                if (idx > 0) setSelectedCheckId(phaseChecks[idx - 1].id);
+                                            }}
+                                            disabled={phaseChecks.findIndex((c) => c.id === selectedCheck.id) === 0}
+                                        >
+                                            ← Previous Check
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                const idx = phaseChecks.findIndex((c) => c.id === selectedCheck.id);
+                                                if (idx < phaseChecks.length - 1) {
+                                                    setSelectedCheckId(phaseChecks[idx + 1].id);
+                                                } else {
+                                                    const phaseIdx = PHASES.findIndex((p) => p.id === activePhase);
+                                                    if (phaseIdx < PHASES.length - 1) setActivePhase(PHASES[phaseIdx + 1].id);
+                                                }
+                                            }}
+                                        >
+                                            {phaseChecks.findIndex((c) => c.id === selectedCheck.id) === phaseChecks.length - 1 ? "Next phase →" : "Next Check →"}
+                                        </Button>
+                                    </div>
+                                </TabsContent>
+
+                                {/* Tab 2: Tools */}
+                                <TabsContent value="reference" className="mt-6 space-y-5">
+                                    {selectedCheck.tool && (
+                                        <div className="space-y-3">
+                                            <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                                                <Wrench className="w-3.5 h-3.5" /> Recommended tools
+                                            </div>
+                                            <div className="rounded-lg border border-border/50 bg-card overflow-hidden">
+                                                {selectedCheck.tool.split("+").map((t, i) => (
+                                                    <div key={i} className="px-5 py-4 flex gap-4 text-sm border-b border-border/30 last:border-0">
+                                                        <span className="text-muted-foreground shrink-0 font-mono text-sm w-5 text-right mt-px">{i + 1}.</span>
+                                                        <span className="leading-relaxed">{t.trim()}</span>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
-                                    );
-                                })}
-
-                                {project.pages.length === 0 && (
-                                    <div className="text-center py-12 text-sm text-muted-foreground border border-dashed rounded-xl">
-                                        No pages added to this project yet.
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Navigation */}
-                            <div className="flex justify-between pt-6 border-t border-border/30">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        const idx = phaseChecks.findIndex((c) => c.id === selectedCheck.id);
-                                        if (idx > 0) {
-                                            const prev = phaseChecks[idx - 1];
-                                            setSelectedCheckId(prev.id);
-                                        }
-                                    }}
-                                    disabled={phaseChecks.findIndex((c) => c.id === selectedCheck.id) === 0}
-                                >
-                                    ← Previous Check
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={() => {
-                                        const idx = phaseChecks.findIndex((c) => c.id === selectedCheck.id);
-                                        if (idx < phaseChecks.length - 1) {
-                                            const next = phaseChecks[idx + 1];
-                                            setSelectedCheckId(next.id);
-                                        } else {
-                                            const phaseIdx = PHASES.findIndex((p) => p.id === activePhase);
-                                            if (phaseIdx < PHASES.length - 1) {
-                                                setActivePhase(PHASES[phaseIdx + 1].id);
-                                            }
-                                        }
-                                    }}
-                                >
-                                    {phaseChecks.findIndex((c) => c.id === selectedCheck.id) ===
-                                        phaseChecks.length - 1
-                                        ? "Next phase →"
-                                        : "Next Check →"}
-                                </Button>
-                            </div>
+                                    )}
+                                    {selectedCheck.voiceOverTip && (
+                                        <div className="rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-3.5 py-2.5 flex gap-2">
+                                            <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                                            <p className="text-sm text-blue-900 dark:text-blue-200">
+                                                <strong>VoiceOver:</strong> {selectedCheck.voiceOverTip}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {!selectedCheck.tool && !selectedCheck.voiceOverTip && (
+                                        <p className="text-sm text-muted-foreground">No tools listed for this check.</p>
+                                    )}
+                                </TabsContent>
+                            </Tabs>
 
                         </div>
                     ) : (
