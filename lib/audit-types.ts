@@ -1,6 +1,7 @@
 export type ConformanceTarget = "WCAG 2.1 AA" | "WCAG 2.1 AAA" | "WCAG 2.2 AA" | "WCAG 2.2 AAA" | "EN 301 549";
 export type CheckStatus = "pending" | "pass" | "fail" | "partial" | "na";
 export type Severity = "critical" | "high" | "medium" | "low";
+export type Role = "developer" | "designer" | "content" | "qa";
 export type Phase =
   | "automated"
   | "keyboard"
@@ -22,6 +23,7 @@ export interface AuditCheck {
   voiceOverTip?: string;
   passCondition: string;
   conditional?: string;
+  roles?: Role[];
 }
 
 export interface CheckResult {

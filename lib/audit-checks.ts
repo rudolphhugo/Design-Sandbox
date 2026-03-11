@@ -16,6 +16,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Browser tab + DevTools",
     passCondition:
       "Title is present, unique per page, and describes the topic or purpose.",
+    roles: ["content"],
   },
   {
     id: "auto-02",
@@ -31,6 +32,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools + WAVE",
     passCondition:
       'A valid lang attribute exists on <html> matching the page\'s primary language (e.g. lang="sv").',
+    roles: ["developer", "content"],
   },
   {
     id: "auto-03",
@@ -46,6 +48,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "WAVE, DevTools",
     passCondition:
       "All informative images have descriptive alt text. Decorative images have empty alt (alt=\"\"). No images use filename or 'image of' as alt.",
+    roles: ["content", "developer"],
   },
   {
     id: "auto-04",
@@ -61,6 +64,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "WAVE, DevTools",
     passCondition:
       "Every input has an associated <label> element or aria-label/aria-labelledby. Labels are visible (not hidden off-screen unless intentional).",
+    roles: ["developer", "content"],
   },
   {
     id: "auto-05",
@@ -76,6 +80,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "WAVE (Structure tab)",
     passCondition:
       "One H1 per page. Heading levels increment sequentially. No level skips (e.g. H2 directly to H4).",
+    roles: ["content", "developer"],
   },
   {
     id: "auto-06",
@@ -91,6 +96,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "WAVE, Chrome Accessibility panel",
     passCondition:
       "Page has <main>, <header>, and <footer>. Navigation menus use <nav>. Multiple <nav> elements are distinguishable via aria-label.",
+    roles: ["developer"],
   },
   {
     id: "auto-07",
@@ -106,6 +112,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "WAVE",
     passCondition:
       "Every link's purpose is clear from its text alone, or from its immediate surrounding context (e.g. a paragraph). No 'click here' or 'read more' links without context.",
+    roles: ["content"],
   },
   {
     id: "auto-08",
@@ -121,6 +128,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "WAVE, Colour Contrast Analyser",
     passCondition:
       "Normal text ≥4.5:1. Large text ≥3:1. Text in images same requirements. Logos and decorative text are exempt.",
+    roles: ["designer"],
   },
   {
     id: "auto-09",
@@ -136,6 +144,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Colour Contrast Analyser",
     passCondition:
       "All active UI components and their visual boundaries achieve 3:1 contrast against adjacent colours. Inactive/disabled components are exempt.",
+    roles: ["designer"],
   },
   {
     id: "auto-10",
@@ -151,6 +160,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Chrome Accessibility panel, WAVE",
     passCondition:
       "Every interactive element has an accessible name, semantic role, and correct state/value exposed to assistive technology.",
+    roles: ["developer"],
   },
   {
     id: "auto-11",
@@ -167,6 +177,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual + keyboard test",
     passCondition:
       "Audio that auto-plays for >3 seconds has a pause, stop, or volume control that appears before the audio element in tab order.",
+    roles: ["developer", "designer"],
   },
 
   // ─── PHASE 2: KEYBOARD NAVIGATION ────────────────────────────────────────
@@ -184,6 +195,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard only",
     passCondition:
       "First Tab press reveals a skip link. Activating it moves focus to the start of main content. Link is visibly focused.",
+    roles: ["developer"],
   },
   {
     id: "key-02",
@@ -199,6 +211,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard only",
     passCondition:
       "Every feature and function available with a mouse is also fully operable using Tab, Enter, Escape, and arrow keys alone.",
+    roles: ["developer", "qa"],
   },
   {
     id: "key-03",
@@ -214,6 +227,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard only",
     passCondition:
       "Focus never becomes permanently trapped. Modals close with Escape and return focus to the trigger. Every focus entry point has an exit.",
+    roles: ["developer", "qa"],
   },
   {
     id: "key-04",
@@ -229,6 +243,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard only",
     passCondition:
       "Tab order follows a sequence that preserves meaning — generally top-left to bottom-right matching the reading order.",
+    roles: ["developer", "designer"],
   },
   {
     id: "key-05",
@@ -244,6 +259,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + DevTools",
     passCondition:
       "Every focusable element shows a clearly visible focus indicator at all times. No element has outline: none without an equivalent visible replacement.",
+    roles: ["designer", "developer"],
   },
   {
     id: "key-06",
@@ -259,6 +275,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + Colour Contrast Analyser",
     passCondition:
       "Focus indicator achieves 3:1 contrast against both the surrounding background and the adjacent element colours.",
+    roles: ["designer"],
   },
   {
     id: "key-07",
@@ -274,6 +291,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard only",
     passCondition:
       "Focus alone causes no context changes. Page navigations, form submissions, and pop-ups only trigger on explicit activation (Enter, Space, click).",
+    roles: ["developer"],
   },
   {
     id: "key-08",
@@ -290,6 +308,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + mouse",
     passCondition:
       "Hover-triggered content: (1) can be dismissed with Escape, (2) stays visible when hovering over the revealed content itself, (3) persists until user moves pointer away.",
+    roles: ["developer", "designer"],
   },
 
   // ─── PHASE 3: SCREEN READER (VOICEOVER) ──────────────────────────────────
@@ -308,6 +327,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Rotor: VO+U → navigate to Headings. Jump: VO+Cmd+H (forward) / VO+Cmd+Shift+H (back).",
     passCondition:
       "All visible headings appear in VoiceOver's heading list. VoiceOver announces each heading with its level (e.g. 'Heading level 2').",
+    roles: ["developer", "content", "qa"],
   },
   {
     id: "sr-02",
@@ -324,6 +344,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Rotor: VO+U → navigate to Landmarks with left/right arrow.",
     passCondition:
       "All major page regions appear as landmarks in VoiceOver. Multiple landmarks of the same type have unique labels.",
+    roles: ["developer", "qa"],
   },
   {
     id: "sr-03",
@@ -340,6 +361,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Rotor: VO+U → Links. Check for 'Read more', 'Click here', or 'Här' without context.",
     passCondition:
       "Every link in the VoiceOver links list communicates its destination or purpose clearly without needing surrounding context.",
+    roles: ["content", "qa"],
   },
   {
     id: "sr-04",
@@ -356,6 +378,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "VoiceOver announces: 'Description, image' for alt text, or skips if alt=\"\".",
     passCondition:
       "Meaningful images are announced with descriptive alt text. Decorative images are skipped entirely. No filename or 'image of' alt text.",
+    roles: ["content", "qa"],
   },
   {
     id: "sr-05",
@@ -372,6 +395,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Tab into fields — listen for label + field type. Required fields should say 'required'.",
     passCondition:
       "Every form field is announced with its label and type. Required fields are announced as required. Groups of related fields have a group label.",
+    roles: ["developer", "content", "qa"],
   },
   {
     id: "sr-06",
@@ -388,6 +412,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Listen for 'button' role. Icon buttons with no text: check for aria-label in DevTools.",
     passCondition:
       "All buttons are announced as 'button'. Icon-only buttons have a meaningful accessible name. Toggle buttons announce their current state.",
+    roles: ["developer", "qa"],
   },
   {
     id: "sr-07",
@@ -405,6 +430,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Status messages should be announced after a short delay. 'Alert' role announces immediately.",
     passCondition:
       "Status messages (success, error, warning) are automatically announced by VoiceOver without requiring focus to move to them.",
+    roles: ["developer", "qa"],
   },
   {
     id: "sr-08",
@@ -422,6 +448,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "VoiceOver automatically switches voice when it encounters a different lang attribute.",
     passCondition:
       "Any inline content in a different language has a lang attribute on that element or a parent element. VoiceOver switches pronunciation correctly.",
+    roles: ["developer", "content"],
   },
   {
     id: "sr-09",
@@ -438,6 +465,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Should hear: 'Search, button' not just 'button'. Check for aria-label in Inspector.",
     passCondition:
       "Every icon-only interactive element has an accessible name that clearly communicates its purpose, announced by VoiceOver.",
+    roles: ["developer", "content"],
   },
   {
     id: "sr-10",
@@ -455,6 +483,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Tab to the invalid field — VoiceOver should say 'invalid data' and read the error message.",
     passCondition:
       "Validation errors are announced automatically or announced when focus moves to the invalid field. Error text is associated with the field via aria-describedby.",
+    roles: ["developer", "content", "qa"],
   },
 
   // ─── PHASE 4: VISUAL & COGNITIVE ─────────────────────────────────────────
@@ -472,6 +501,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Greyscale mode + visual inspection",
     passCondition:
       "Every instance of colour-coded information has an additional non-colour indicator. Links in body text have underlines or other visual distinction.",
+    roles: ["designer", "developer"],
   },
   {
     id: "vis-02",
@@ -487,6 +517,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools responsive mode (320px)",
     passCondition:
       "At 320px viewport width, all content is accessible by scrolling vertically only. No full-page horizontal scroll required.",
+    roles: ["designer", "developer"],
   },
   {
     id: "vis-03",
@@ -502,6 +533,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Browser text zoom (200%)",
     passCondition:
       "At 200% text size, all content remains readable and functional. No text is cut off, overlapping, or hidden. Layout may reflow but all content is accessible.",
+    roles: ["designer", "developer"],
   },
   {
     id: "vis-04",
@@ -517,6 +549,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Text Spacing bookmarklet (available at www.html5accessibility.com/tests/tsbookmarklet.html)",
     passCondition:
       "When all four text spacing properties are overridden, no content is clipped, lost, or causes layout overlap. All text remains readable.",
+    roles: ["developer", "designer"],
   },
   {
     id: "vis-05",
@@ -533,6 +566,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual observation, PEAT tool for video",
     passCondition:
       "No content flashes more than 3 times per second. Or flashing content is below the general flash threshold (small area, low contrast).",
+    roles: ["designer", "qa"],
   },
   {
     id: "vis-06",
@@ -549,6 +583,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + visual inspection",
     passCondition:
       "All moving/auto-updating content that lasts >5 seconds has a keyboard-accessible pause, stop, or hide control appearing before the content in DOM order.",
+    roles: ["developer", "designer"],
   },
   {
     id: "vis-07",
@@ -564,6 +599,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual comparison across pages",
     passCondition:
       "Navigation components appear in the same relative order on every page they appear. Position may differ in layout but order within the component stays consistent.",
+    roles: ["designer", "developer"],
   },
   {
     id: "vis-08",
@@ -579,6 +615,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual comparison + DevTools",
     passCondition:
       "Components that perform the same function are consistently labelled with the same visible text and accessible name across all pages.",
+    roles: ["designer", "content"],
   },
 
   // ─── PHASE 5: CODE & STRUCTURE ────────────────────────────────────────────
@@ -597,6 +634,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools",
     passCondition:
       "All personal data input fields have a valid autocomplete attribute that matches the data type being collected.",
+    roles: ["developer"],
   },
   {
     id: "code-02",
@@ -612,6 +650,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools Accessibility panel",
     passCondition:
       "For all elements with visible text labels, that text is included in the element's accessible name. Accessible name may add more context but cannot omit the visible text.",
+    roles: ["developer", "content"],
   },
   {
     id: "code-03",
@@ -627,6 +666,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Web Developer extension (Disable CSS)",
     passCondition:
       "Reading the page without CSS, content appears in a logical order that conveys the same meaning as the styled version.",
+    roles: ["developer"],
   },
   {
     id: "code-04",
@@ -643,6 +683,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools",
     passCondition:
       "All passages in a different language than the page default have a lang attribute specifying the correct language code on that element.",
+    roles: ["developer", "content"],
   },
   {
     id: "code-05",
@@ -658,6 +699,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools + WAVE",
     passCondition:
       "All visual lists use correct semantic list elements. Navigation menus use <ul>/<li>. Numbered sequences use <ol>. Term-definition pairs use <dl>.",
+    roles: ["developer"],
   },
   {
     id: "code-06",
@@ -674,6 +716,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools + WAVE",
     passCondition:
       "All data tables have header cells marked with <th>. Tables have a <caption> or aria-label. Complex tables have proper scope or headers/id associations.",
+    roles: ["developer", "content"],
   },
   {
     id: "code-07",
@@ -690,6 +733,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools + form testing",
     passCondition:
       "Errors are identified in text. Each error message is programmatically linked to its field via aria-describedby. Invalid fields have aria-invalid='true'.",
+    roles: ["developer", "content"],
   },
   {
     id: "code-08",
@@ -706,6 +750,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Form testing",
     passCondition:
       "Error messages describe the error and provide actionable guidance on how to correct it, unless doing so would compromise security or the purpose of the check.",
+    roles: ["content"],
   },
   {
     id: "code-09",
@@ -722,6 +767,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual testing",
     passCondition:
       "Consequential actions are either reversible, have a confirmation/review step before submission, or allow correction of errors before finalising.",
+    roles: ["developer", "designer"],
   },
   {
     id: "code-10",
@@ -738,6 +784,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual inspection",
     passCondition:
       "Every page (outside process steps) can be reached by at least two different methods: e.g. navigation + search, navigation + sitemap, etc.",
+    roles: ["designer", "developer"],
   },
   {
     id: "code-11",
@@ -753,6 +800,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual content review",
     passCondition:
       "No instructions rely solely on sensory characteristics (colour, shape, size, location, sound). Each instruction also provides a name, label, or non-sensory description.",
+    roles: ["content"],
   },
   {
     id: "code-12",
@@ -769,6 +817,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools Network + manual observation",
     passCondition:
       "No automatic refresh or redirect occurs without warning. Session timeouts give ≥20 seconds notice and allow extension. Default timeout is ≥20 hours.",
+    roles: ["developer"],
   },
 
   // ─── MISSING AA/A CHECKS ──────────────────────────────────────────────────
@@ -788,6 +837,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools + visual inspection",
     passCondition:
       "No images of text are used where real styled text could achieve the same visual effect. Logotypes and essential text in photos are the only exceptions.",
+    roles: ["developer", "designer"],
   },
 
   // Phase 2: Keyboard
@@ -806,6 +856,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard testing + documentation review",
     passCondition:
       "Single-character shortcuts can be disabled, remapped to a modifier-key combination, or are only active when focus is on a specific UI component.",
+    roles: ["developer"],
   },
   {
     id: "key-10",
@@ -821,6 +872,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual review + WAVE headings list",
     passCondition:
       "Every heading describes the content that follows it. Every label describes the purpose of its associated form field. No field relies solely on placeholder text.",
+    roles: ["content", "designer"],
   },
   {
     id: "key-11",
@@ -837,6 +889,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + visual inspection",
     passCondition:
       "When any component receives keyboard focus, it is not entirely hidden by author-created overlapping content. At least part of the component is visible.",
+    roles: ["developer", "designer"],
   },
   {
     id: "key-12",
@@ -853,6 +906,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools touch simulation + manual",
     passCondition:
       "Every multi-touch gesture has an equivalent single-pointer alternative that achieves the same function.",
+    roles: ["developer"],
   },
   {
     id: "key-13",
@@ -868,6 +922,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual mouse/touch testing",
     passCondition:
       "Actions activate on pointer up (mouseup/touchend), not on pointer down. Or if down-event is used, the action can be cancelled by moving away before releasing.",
+    roles: ["developer"],
   },
   {
     id: "key-14",
@@ -884,6 +939,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual + DevTools sensors panel",
     passCondition:
       "Any functionality triggered by device motion has an equivalent UI control. Users can disable the motion trigger without affecting system-level accessibility.",
+    roles: ["developer"],
   },
   {
     id: "key-15",
@@ -900,6 +956,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual keyboard + pointer testing",
     passCondition:
       "All dragging functionality has an equivalent single-pointer alternative that does not require dragging. Exception: dragging is essential to the function.",
+    roles: ["developer"],
   },
   {
     id: "key-16",
@@ -916,6 +973,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools + ruler",
     passCondition:
       "All interactive targets are at least 24×24 CSS pixels in size, OR have sufficient spacing so the target offset area is at least 24×24px.",
+    roles: ["designer", "developer"],
   },
 
   // Phase 3: Screen Reader — missing media checks
@@ -935,6 +993,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Navigate to the audio player with VoiceOver — check if a transcript link is adjacent and reachable.",
     passCondition:
       "Every prerecorded audio-only file has a full text transcript provided on the same page or via an accessible link immediately adjacent to the player.",
+    roles: ["content", "qa"],
   },
   {
     id: "sr-12",
@@ -951,6 +1010,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual inspection",
     passCondition:
       "Every prerecorded video-only file has either a text alternative describing all visual content, or an audio description track.",
+    roles: ["content", "qa"],
   },
   {
     id: "sr-13",
@@ -968,6 +1028,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Test that the CC toggle button is reachable and operable with VoiceOver.",
     passCondition:
       "All prerecorded video with audio has accurate, synchronised captions. Captions include all dialogue, speaker identification, and relevant non-speech audio.",
+    roles: ["content", "qa"],
   },
   {
     id: "sr-14",
@@ -984,6 +1045,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual + keyboard",
     passCondition:
       "All important visual content in prerecorded video is either described in the main audio track, or an audio description track is available and selectable.",
+    roles: ["content", "qa"],
   },
   {
     id: "sr-15",
@@ -1000,6 +1062,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Live event testing",
     passCondition:
       "All live video with audio has synchronised captions available. Captions do not need to be perfect but must be accurate enough to convey the essential content.",
+    roles: ["content", "qa"],
   },
 
   // Phase 4: Visual — missing checks
@@ -1018,6 +1081,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Mobile device or DevTools responsive mode",
     passCondition:
       "Page content works in both portrait and landscape orientations. No orientation lock is applied unless the specific content requires it.",
+    roles: ["designer", "developer"],
   },
   {
     id: "vis-10",
@@ -1033,6 +1097,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + visual inspection",
     passCondition:
       "Changing the value of any UI component does not automatically trigger a context change (navigation, form submission, new window). Changes only happen on explicit user action.",
+    roles: ["developer"],
   },
   {
     id: "vis-11",
@@ -1049,6 +1114,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual comparison across pages",
     passCondition:
       "If a help mechanism exists, it appears in the same relative location on every page it appears. It is keyboard accessible and consistently labelled.",
+    roles: ["designer", "developer"],
   },
 
   // Phase 5: Code — missing checks
@@ -1067,6 +1133,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual form testing",
     passCondition:
       "Information already entered earlier in the same process is either auto-populated, available to select, or not required again. Security confirmation re-entry is exempt.",
+    roles: ["developer"],
   },
   {
     id: "code-14",
@@ -1083,6 +1150,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual testing",
     passCondition:
       "Authentication does not require solving a cognitive function test (transcribing, puzzle-solving) unless an alternative method is provided. Copy-paste must be allowed.",
+    roles: ["developer"],
   },
 
   // ─── AAA CHECKS ───────────────────────────────────────────────────────────
@@ -1102,6 +1170,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Colour Contrast Analyser",
     passCondition:
       "Normal text achieves 7:1 contrast. Large text achieves 4.5:1. All AA contrast requirements are also met.",
+    roles: ["designer"],
   },
   {
     id: "aaa-02",
@@ -1117,6 +1186,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools + visual inspection",
     passCondition:
       "No images of text are used anywhere on the page. All text — including logotypes — is rendered using real, styled text.",
+    roles: ["developer", "designer"],
   },
 
   // Phase 2: Keyboard — AAA
@@ -1134,6 +1204,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard only",
     passCondition:
       "Every single function on the page — without any exception — is operable by keyboard alone. No path-dependent-input exceptions apply.",
+    roles: ["developer", "qa"],
   },
   {
     id: "aaa-04",
@@ -1150,6 +1221,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + visual inspection",
     passCondition:
       "When any component receives keyboard focus, it is completely visible — not partially hidden by any other author-created content.",
+    roles: ["developer", "designer"],
   },
   {
     id: "aaa-05",
@@ -1166,6 +1238,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Keyboard + Colour Contrast Analyser + ruler",
     passCondition:
       "Focus indicator has ≥2px perimeter around the component, achieves 3:1 contrast between focused and unfocused states, and is not obscured.",
+    roles: ["designer", "developer"],
   },
   {
     id: "aaa-06",
@@ -1182,6 +1255,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools",
     passCondition:
       "All interactive targets are at least 44×44 CSS pixels. Inline text links within sentences are the only exception.",
+    roles: ["designer"],
   },
   {
     id: "aaa-07",
@@ -1198,6 +1272,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Multi-input testing",
     passCondition:
       "The page does not restrict use to a single input modality. All input methods (touch, mouse, keyboard, stylus) work at all times.",
+    roles: ["developer"],
   },
 
   // Phase 3: Screen Reader — AAA
@@ -1216,6 +1291,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual review",
     passCondition:
       "All prerecorded video with audio has sign language interpretation available in the primary sign language(s) of the intended audience.",
+    roles: ["content", "qa"],
   },
   {
     id: "aaa-09",
@@ -1232,6 +1308,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual review",
     passCondition:
       "All visual content is fully described. If descriptions require pausing the video, an extended audio description version is provided.",
+    roles: ["content", "qa"],
   },
   {
     id: "aaa-10",
@@ -1248,6 +1325,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual review",
     passCondition:
       "A full media alternative document exists that contains all spoken content and descriptions of all meaningful visual information. Accessible via a clearly labelled link.",
+    roles: ["content", "qa"],
   },
   {
     id: "aaa-11",
@@ -1264,6 +1342,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Live event testing",
     passCondition:
       "Live audio-only content has a real-time text alternative provided, either as live captions or a prepared equivalent text that is updated as the broadcast progresses.",
+    roles: ["content", "qa"],
   },
   {
     id: "aaa-12",
@@ -1280,6 +1359,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "DevTools Accessibility panel + ARIA authoring practices",
     passCondition:
       "The purpose of all icons, components, and regions is programmatically determinable using standard HTML semantics and ARIA, enabling personalisation by assistive tech.",
+    roles: ["developer"],
   },
   {
     id: "aaa-13",
@@ -1295,6 +1375,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Content review",
     passCondition:
       "A mechanism is available to identify definitions of unusual words, technical terms, jargon, and idioms. Definitions are accessible to all users including screen readers.",
+    roles: ["content"],
   },
   {
     id: "aaa-14",
@@ -1311,6 +1392,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "VoiceOver reads the title attribute of <abbr> elements when navigating to them.",
     passCondition:
       "A mechanism is available to expand all abbreviations. First use provides the full form, or a glossary/definition is accessible. <abbr> elements with title attributes are used.",
+    roles: ["content"],
   },
   {
     id: "aaa-15",
@@ -1326,6 +1408,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Readability analyser (online tools available)",
     passCondition:
       "Content is written at lower secondary education level, OR supplementary content in plain language is provided that explains the complex content.",
+    roles: ["content"],
   },
   {
     id: "aaa-16",
@@ -1342,6 +1425,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Content review",
     passCondition:
       "A mechanism is provided to identify the correct pronunciation of any word where meaning cannot be determined without knowing how it is pronounced.",
+    roles: ["content"],
   },
 
   // Phase 4: Visual — AAA
@@ -1360,6 +1444,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual audio testing",
     passCondition:
       "Background audio does not play, can be turned off, or is at least 20dB lower than foreground speech. Sound effects under 3 seconds are exempt.",
+    roles: ["designer", "developer"],
   },
   {
     id: "aaa-18",
@@ -1375,6 +1460,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual inspection + browser text settings",
     passCondition:
       "Text blocks: ≤80 chars wide, not justified, line spacing ≥1.5×, paragraph spacing ≥1.5× line height. Colour is not forced (user browser settings respected). Resizes to 200% without horizontal scroll.",
+    roles: ["designer", "developer"],
   },
   {
     id: "aaa-19",
@@ -1391,6 +1477,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual testing",
     passCondition:
       "No time limits are imposed by the content. Exceptions: real-time events where timing is essential, and interactions where time is absolutely required.",
+    roles: ["developer"],
   },
   {
     id: "aaa-20",
@@ -1407,6 +1494,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual testing",
     passCondition:
       "Users can postpone or suppress all interruptions — either individually or globally. Emergency alerts are the only exception.",
+    roles: ["developer"],
   },
   {
     id: "aaa-21",
@@ -1423,6 +1511,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual session testing",
     passCondition:
       "After session expiry and re-authentication, all data entered by the user is preserved and the user can continue from where they left off.",
+    roles: ["developer"],
   },
   {
     id: "aaa-22",
@@ -1439,6 +1528,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual testing + VoiceOver",
     passCondition:
       "Users are warned of data loss risk before inactivity causes it. Warning is accessible, gives sufficient time, and is announced by assistive technology.",
+    roles: ["developer", "content"],
   },
   {
     id: "aaa-23",
@@ -1455,6 +1545,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Visual observation, PEAT tool",
     passCondition:
       "Absolutely no content flashes more than 3 times per second. No luminance threshold exceptions. This is a hard limit.",
+    roles: ["designer", "qa"],
   },
   {
     id: "aaa-24",
@@ -1471,6 +1562,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "macOS Reduce Motion setting + DevTools",
     passCondition:
       "All motion animations triggered by interaction can be disabled via the prefers-reduced-motion media query or a user-accessible control. Essential motion is exempt.",
+    roles: ["developer", "designer"],
   },
   {
     id: "aaa-25",
@@ -1487,6 +1579,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Breadcrumbs should have aria-label='Breadcrumb' and aria-current='page' on the current item.",
     passCondition:
       "A mechanism is available to identify the user's location within the site — breadcrumbs, current-page indicator in navigation, or site map.",
+    roles: ["designer", "developer"],
   },
   {
     id: "aaa-26",
@@ -1502,6 +1595,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "WAVE headings view + VoiceOver",
     passCondition:
       "All sections of content within a page are labelled with a heading. No significant block of content exists without a heading to introduce it.",
+    roles: ["content", "developer"],
   },
   {
     id: "aaa-27",
@@ -1517,6 +1611,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual interaction testing",
     passCondition:
       "Context changes only occur when the user explicitly requests them. No automatic context changes on hover, scroll, focus, or passive interaction.",
+    roles: ["developer"],
   },
 
   // Phase 5: Code — AAA
@@ -1535,6 +1630,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Rotor: VO+U → Links. Read each link without looking at surrounding page content.",
     passCondition:
       "Every link's purpose is unambiguous from its text alone, without needing to read surrounding content. No generic link text is used.",
+    roles: ["content"],
   },
   {
     id: "aaa-29",
@@ -1552,6 +1648,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     voiceOverTip: "Tab to each field — does VoiceOver announce help text after the field label?",
     passCondition:
       "Context-sensitive help is available for every input field. Help text is visible, correctly associated with its field, and announced by screen readers.",
+    roles: ["content", "developer"],
   },
   {
     id: "aaa-30",
@@ -1567,6 +1664,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual form testing",
     passCondition:
       "All form submissions are either reversible, include a review/confirm step, or allow error correction before final submission. No exceptions for non-consequential forms.",
+    roles: ["developer"],
   },
   {
     id: "aaa-31",
@@ -1583,6 +1681,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     tool: "Manual testing",
     passCondition:
       "Authentication requires no cognitive function test of any kind. No CAPTCHA, image recognition, or puzzle. Passkeys, magic links, and similar are acceptable.",
+    roles: ["developer"],
   },
 ];
 

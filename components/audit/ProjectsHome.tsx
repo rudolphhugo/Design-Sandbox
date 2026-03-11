@@ -34,9 +34,9 @@ export function ProjectsHome() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-muted/40">
       {/* Header */}
-      <div className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-border/50 bg-background/40/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
