@@ -187,8 +187,8 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
     <div className="h-screen flex flex-col bg-muted/40 overflow-hidden">
       {/* Top bar */}
       <div className="border-b border-border/50 bg-background/80 backdrop-blur-sm shrink-0">
-        <div className="px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="px-4 py-3 flex items-center gap-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <Button
               variant="ghost"
               size="icon"
@@ -201,6 +201,18 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
               <h1 className="text-sm font-semibold truncate">{page.name}</h1>
               <p className="text-xs text-muted-foreground truncate">{project.clientName}</p>
             </div>
+          </div>
+          {/* Mode switcher */}
+          <div className="hidden md:flex items-center gap-0.5 rounded-lg border border-border/50 bg-muted/30 p-0.5 shrink-0">
+            <button
+              className="px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => router.push(`/layouts/a11y-audit/${projectId}/criteria`)}
+            >
+              By Criteria
+            </button>
+            <button className="px-3 py-1 rounded-md text-xs font-medium bg-background shadow-sm text-foreground">
+              By Page
+            </button>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {savedAt && (
@@ -423,7 +435,7 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                         updateCheck(selectedCheck.id, selectedResult.status, v as Severity)
                       }
                     >
-                      <SelectTrigger className="h-8 text-sm">
+                      <SelectTrigger className="h-8 text-sm bg-white dark:bg-background">
                         <SelectValue placeholder="Set severity..." />
                       </SelectTrigger>
                       <SelectContent>
@@ -452,7 +464,7 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
                     placeholder="e.g. 'The contact form submit button has aria-label='btn1' — not descriptive. Fails on all form pages.'"
                     value={notesDraft}
                     onChange={(e) => handleNotesChange(selectedCheck.id, e.target.value)}
-                    className="text-sm min-h-[80px] resize-none"
+                    className="text-sm min-h-[80px] resize-none bg-white dark:bg-background"
                   />
                 </div>
 

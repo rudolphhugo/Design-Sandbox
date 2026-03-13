@@ -115,22 +115,26 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
     const updateCheck = useCallback(
         (pageId: string, checkId: string, status: CheckStatus, severity?: Severity) => {
-            if (!project) return;
-            const page = project.pages.find(p => p.id === pageId);
-            if (!page) return;
+            setProject(currentProject => {
+                if (!currentProject) return currentProject;
+                const page = currentProject.pages.find(p => p.id === pageId);
+                if (!page) return currentProject;
 
-            const existing = page.checks.find((c) => c.checkId === checkId)!;
-            const updatedProject = updateCheckResult(project, pageId, {
-                checkId,
-                status,
-                severity: status === "fail" || status === "partial" ? (severity ?? existing.severity) : undefined,
-                notes: existing.notes,
+                const existing = page.checks.find((c) => c.checkId === checkId);
+                if (!existing) return currentProject;
+
+                const updatedProject = updateCheckResult(currentProject, pageId, {
+                    checkId,
+                    status,
+                    severity: status === "fail" || status === "partial" ? (severity ?? existing.severity) : undefined,
+                    notes: existing.notes,
+                });
+                saveProject(updatedProject);
+                return updatedProject;
             });
-            saveProject(updatedProject);
-            setProject(updatedProject);
             triggerSaved();
         },
-        [project, triggerSaved]
+        [triggerSaved]
     );
 
     const handleNotesChange = useCallback(
@@ -161,25 +165,37 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
     if (!project) return null;
 
+    function handleSwitchToPage() {
+        const firstIncomplete = project!.pages.find(p => p.status !== "complete") ?? project!.pages[0];
+        if (firstIncomplete) {
+            router.push(`/layouts/a11y-audit/${projectId}/audit/${firstIncomplete.id}`);
+        } else {
+            router.push(`/layouts/a11y-audit/${projectId}`);
+        }
+    }
+
     const filterByRole = (checks: typeof ALL_CHECKS) =>
         activeRoles.size === 0 ? checks : checks.filter(c => c.roles?.some(r => activeRoles.has(r)));
 
     const phaseChecks = filterByRole(ALL_CHECKS.filter((c) => c.phase === activePhase));
     const selectedCheck = selectedCheckId ? ALL_CHECKS.find((c) => c.id === selectedCheckId) : null;
 
-    // Calculate total project progress
-    const totalChecks = project.pages.length * ALL_CHECKS.length;
-    const completedChecks = project.pages.reduce((acc, page) => {
-        return acc + page.checks.filter(c => c.status !== "pending").length;
-    }, 0);
+    // Criteria-based progress: total = unique criteria, done = criteria where all pages are non-pending
+    const totalChecks = ALL_CHECKS.length;
+    const completedChecks = ALL_CHECKS.filter((check) =>
+        project.pages.length > 0 &&
+        project.pages.every(
+            (page) => page.checks.find((r) => r.checkId === check.id)?.status !== "pending"
+        )
+    ).length;
     const pct = totalChecks === 0 ? 0 : Math.round((completedChecks / totalChecks) * 100);
 
     return (
         <div className="h-screen flex flex-col bg-muted/40 overflow-hidden">
             {/* Top bar */}
             <div className="border-b border-border/50 bg-background/80 backdrop-blur-sm shrink-0">
-                <div className="px-4 py-3 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
+                <div className="px-4 py-3 flex items-center gap-4">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -189,9 +205,21 @@ export function CriteriaWorkspace({ projectId }: Props) {
                             <ArrowLeft className="w-4 h-4" />
                         </Button>
                         <div className="min-w-0">
-                            <h1 className="text-base font-semibold truncate">Batch Audit: By Criteria</h1>
-                            <p className="text-sm text-muted-foreground truncate">{project.clientName}</p>
+                            <h1 className="text-base font-semibold truncate">{project.clientName}</h1>
+                            <p className="text-xs text-muted-foreground truncate">Accessibility audit</p>
                         </div>
+                    </div>
+                    {/* Mode switcher */}
+                    <div className="hidden md:flex items-center gap-0.5 rounded-lg border border-border/50 bg-muted/30 p-0.5 shrink-0">
+                        <button className="px-3 py-1 rounded-md text-xs font-medium bg-background shadow-sm text-foreground">
+                            By Criteria
+                        </button>
+                        <button
+                            className="px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                            onClick={handleSwitchToPage}
+                        >
+                            By Page
+                        </button>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                         {savedAt && (
@@ -344,16 +372,23 @@ export function CriteriaWorkspace({ projectId }: Props) {
                             {/* Always-visible header */}
                             <div className="space-y-3">
                                 <div>
-                                    <h2 className="text-3xl font-semibold leading-snug">{selectedCheck.title}</h2>
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest capitalize">
+                                        {selectedCheck.category}
+                                    </span>
+                                    <h2 className="text-3xl font-semibold leading-snug mt-1">{selectedCheck.title}</h2>
                                     <div className="flex items-center gap-2 mt-2 flex-wrap">
                                         <Badge variant="outline" className="text-xs">WCAG {selectedCheck.wcag}</Badge>
                                         <Badge variant="outline" className="text-xs">Level {selectedCheck.level}</Badge>
-                                        <span className="text-xs text-muted-foreground capitalize">{selectedCheck.category}</span>
-                                        {selectedCheck.roles?.map(role => (
-                                            <span key={role} className={`px-2 py-0.5 rounded-full border text-[11px] font-medium ${roleConfig[role].className}`}>
-                                                {roleConfig[role].label}
-                                            </span>
-                                        ))}
+                                        {selectedCheck.roles && selectedCheck.roles.length > 0 && (
+                                            <>
+                                                <div className="w-px h-3.5 bg-border" />
+                                                {selectedCheck.roles.map(role => (
+                                                    <span key={role} className={`px-2 py-0.5 rounded-full border text-[11px] font-medium ${roleConfig[role].className}`}>
+                                                        {roleConfig[role].label}
+                                                    </span>
+                                                ))}
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                                 <p className="text-base leading-relaxed text-muted-foreground">{selectedCheck.whyItMatters}</p>
@@ -478,7 +513,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                                                         value={result.severity ?? ""}
                                                                         onValueChange={(v) => updateCheck(page.id, selectedCheck.id, result.status, v as Severity)}
                                                                     >
-                                                                        <SelectTrigger className="h-7 text-xs w-28">
+                                                                        <SelectTrigger className="h-7 text-xs w-28 bg-white dark:bg-background">
                                                                             <SelectValue placeholder="Severity..." />
                                                                         </SelectTrigger>
                                                                         <SelectContent>
@@ -496,7 +531,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                                                 placeholder="Notes..."
                                                                 value={draftNotes}
                                                                 onChange={(e) => handleNotesChange(page.id, selectedCheck.id, e.target.value)}
-                                                                className="text-xs min-h-[60px] resize-y"
+                                                                className="text-xs min-h-[60px] resize-y bg-white dark:bg-background"
                                                             />
                                                         </div>
                                                     </div>

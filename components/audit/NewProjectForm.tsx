@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,19 @@ import type { ConformanceTarget } from "@/lib/audit-types";
 
 export function NewProjectForm() {
   const router = useRouter();
+  const [scrolled, setScrolled] = useState(false);
   const [form, setForm] = useState({
     clientName: "",
     websiteUrl: "",
     conformanceTarget: "EN 301 549" as ConformanceTarget,
     auditorName: "",
   });
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +60,7 @@ export function NewProjectForm() {
   return (
     <div className="min-h-screen bg-muted/40">
       {/* Header */}
-      <div className="border-b border-border/50 bg-background/40/80 backdrop-blur-sm sticky top-0 z-10">
+      <div className={`border-b border-border/50 sticky top-0 z-10 transition-colors duration-200 ${scrolled ? "bg-background/80 backdrop-blur-sm" : "bg-background"}`}>
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center gap-3">
           <Button
             variant="ghost"
@@ -94,6 +101,7 @@ export function NewProjectForm() {
                   value={form.clientName}
                   onChange={(e) => setForm({ ...form, clientName: e.target.value })}
                   required
+                  className="bg-white dark:bg-background"
                 />
               </div>
 
@@ -113,6 +121,7 @@ export function NewProjectForm() {
                     }
                   }}
                   required
+                  className="bg-white dark:bg-background"
                 />
               </div>
 
@@ -126,6 +135,7 @@ export function NewProjectForm() {
                   value={form.auditorName}
                   onChange={(e) => setForm({ ...form, auditorName: e.target.value })}
                   required
+                  className="bg-white dark:bg-background"
                 />
               </div>
             </div>
@@ -146,7 +156,7 @@ export function NewProjectForm() {
                 setForm({ ...form, conformanceTarget: v as ConformanceTarget })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white dark:bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
