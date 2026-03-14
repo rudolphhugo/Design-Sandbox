@@ -6,8 +6,8 @@ import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, MinusCircle } from "luci
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { getProject, getFindings, getPageProgress } from "@/lib/audit-storage";
-import { ALL_CHECKS, PHASES } from "@/lib/audit-checks";
+import { getProject, getFindings, getPageProgress, getChecksForTarget } from "@/lib/audit-storage";
+import { PHASES } from "@/lib/audit-checks";
 import type { AuditProject } from "@/lib/audit-types";
 
 interface Props {
@@ -129,9 +129,10 @@ export function FindingsDashboard({ projectId }: Props) {
           <h2 className="text-sm font-semibold">By phase</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {PHASES.map((phase) => {
+              const projectChecks = getChecksForTarget(project.conformanceTarget);
               const phaseChecks = project.pages.flatMap((p) =>
                 p.checks.filter((c) => {
-                  const def = ALL_CHECKS.find((ac) => ac.id === c.checkId);
+                  const def = projectChecks.find((ac) => ac.id === c.checkId);
                   return def?.phase === phase.id;
                 })
               );

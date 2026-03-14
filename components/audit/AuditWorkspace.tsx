@@ -34,6 +34,7 @@ import {
   updateCheckResult,
   getPageProgress,
   getPhaseProgress,
+  getChecksForTarget,
 } from "@/lib/audit-storage";
 import { ALL_CHECKS, PHASES } from "@/lib/audit-checks";
 import type { AuditProject, AuditPage, CheckStatus, Severity, Phase } from "@/lib/audit-types";
@@ -60,11 +61,12 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
 
   const initialProject = typeof window !== "undefined" ? (getProject(projectId) ?? null) : null;
   const initialPage = initialProject?.pages.find((pg) => pg.id === pageId) ?? null;
+  const initialChecks = initialProject ? getChecksForTarget(initialProject.conformanceTarget) : ALL_CHECKS;
   const initialCheck = initialPage
-    ? (ALL_CHECKS.find(
+    ? (initialChecks.find(
         (c) => c.phase === "automated" &&
           initialPage.checks.find((r) => r.checkId === c.id)?.status === "pending"
-      ) ?? ALL_CHECKS.find((c) => c.phase === "automated"))
+      ) ?? initialChecks.find((c) => c.phase === "automated"))
     : null;
 
   const [project, setProject] = useState<AuditProject | null>(initialProject);
@@ -123,11 +125,12 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
   useEffect(() => {
     if (!page) return;
     flushPendingNotes();
-    const firstPending = ALL_CHECKS.find(
+    const targetChecks = project ? getChecksForTarget(project.conformanceTarget) : ALL_CHECKS;
+    const firstPending = targetChecks.find(
       (c) => c.phase === activePhase &&
         page.checks.find((r) => r.checkId === c.id)?.status === "pending"
     );
-    const nextId = firstPending?.id ?? ALL_CHECKS.find((c) => c.phase === activePhase)?.id ?? null;
+    const nextId = firstPending?.id ?? targetChecks.find((c) => c.phase === activePhase)?.id ?? null;
     setSelectedCheckId(nextId);
     setNotesDraft(page.checks.find((c) => c.checkId === nextId)?.notes ?? "");
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -176,8 +179,9 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
 
   if (!project || !page) return null;
 
-  const phaseChecks = ALL_CHECKS.filter((c) => c.phase === activePhase);
-  const selectedCheck = selectedCheckId ? ALL_CHECKS.find((c) => c.id === selectedCheckId) : null;
+  const projectChecks = getChecksForTarget(project.conformanceTarget);
+  const phaseChecks = projectChecks.filter((c) => c.phase === activePhase);
+  const selectedCheck = selectedCheckId ? projectChecks.find((c) => c.id === selectedCheckId) : null;
   const selectedResult = selectedCheckId
     ? page.checks.find((c) => c.checkId === selectedCheckId)
     : null;
@@ -240,10 +244,10 @@ export function AuditWorkspace({ projectId, pageId }: Props) {
         {/* Left: Phase + Check list */}
         <div className="w-72 shrink-0 border-r border-border/50 overflow-y-auto">
           {PHASES.map((phase) => {
-            const { done: pd, total: pt } = getPhaseProgress(page, phase.id);
+            const { done: pd, total: pt } = getPhaseProgress(page, phase.id, project.conformanceTarget);
             const isActive = activePhase === phase.id;
             const isCollapsed = collapsedPhases.has(phase.id);
-            const phaseChecksLocal = ALL_CHECKS.filter((c) => c.phase === phase.id);
+            const phaseChecksLocal = projectChecks.filter((c) => c.phase === phase.id);
 
             return (
               <div key={phase.id}>

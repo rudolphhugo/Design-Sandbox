@@ -29,12 +29,20 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
     getProject,
     saveProject,
     updateCheckResult,
+    updateCriteriaComment,
     getPhaseProgress,
+    getChecksForTarget,
 } from "@/lib/audit-storage";
-import { ALL_CHECKS, PHASES } from "@/lib/audit-checks";
+import { PHASES } from "@/lib/audit-checks";
 import type { AuditProject, CheckStatus, Severity, Phase, Role } from "@/lib/audit-types";
 
 interface Props {
@@ -67,16 +75,21 @@ export function CriteriaWorkspace({ projectId }: Props) {
     const [activeRoles, setActiveRoles] = useState<Set<Role>>(new Set());
 
     const initialProject = typeof window !== "undefined" ? (getProject(projectId) ?? null) : null;
-    const initialCheck = ALL_CHECKS.find((c) => c.phase === "automated") ?? null;
+    const initialCheck = initialProject
+        ? (getChecksForTarget(initialProject.conformanceTarget).find((c) => c.phase === "automated") ?? null)
+        : null;
 
     const [project, setProject] = useState<AuditProject | null>(initialProject);
     const [selectedCheckId, setSelectedCheckId] = useState<string | null>(initialCheck?.id ?? null);
     const [savedAt, setSavedAt] = useState<number | null>(null);
+    const [bulkStatus, setBulkStatus] = useState<CheckStatus>("pass");
 
     // Use a map for the drafts so we can hold notes for multiple pages simultaneously
     const [notesDrafts, setNotesDrafts] = useState<Record<string, string>>({});
+    const [generalCommentDraft, setGeneralCommentDraft] = useState<string>("");
 
     const notesDebounceRefs = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+    const generalCommentDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const projectRef = useRef(project);
     projectRef.current = project;
 
@@ -96,6 +109,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
             newDrafts[page.id] = result?.notes ?? "";
         });
         setNotesDrafts(newDrafts);
+        setGeneralCommentDraft(project.criteriaComments?.[selectedCheckId] ?? "");
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCheckId]);
 
@@ -108,7 +122,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
     // Update selected check when phase changes
     useEffect(() => {
         if (!project) return;
-        const nextId = ALL_CHECKS.find((c) => c.phase === activePhase)?.id ?? null;
+        const nextId = getChecksForTarget(project.conformanceTarget).find((c) => c.phase === activePhase)?.id ?? null;
         setSelectedCheckId(nextId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activePhase]);
@@ -163,6 +177,24 @@ export function CriteriaWorkspace({ projectId }: Props) {
         [triggerSaved]
     );
 
+    const handleGeneralCommentChange = useCallback(
+        (checkId: string, comment: string) => {
+            setGeneralCommentDraft(comment);
+            if (generalCommentDebounceRef.current) clearTimeout(generalCommentDebounceRef.current);
+            generalCommentDebounceRef.current = setTimeout(() => {
+                generalCommentDebounceRef.current = null;
+                setProject(currentProject => {
+                    if (!currentProject) return currentProject;
+                    const updated = updateCriteriaComment(currentProject, checkId, comment);
+                    saveProject(updated);
+                    return updated;
+                });
+                triggerSaved();
+            }, 600);
+        },
+        [triggerSaved]
+    );
+
     if (!project) return null;
 
     function handleSwitchToPage() {
@@ -174,15 +206,16 @@ export function CriteriaWorkspace({ projectId }: Props) {
         }
     }
 
-    const filterByRole = (checks: typeof ALL_CHECKS) =>
+    const projectChecks = getChecksForTarget(project.conformanceTarget);
+    const filterByRole = (checks: typeof projectChecks) =>
         activeRoles.size === 0 ? checks : checks.filter(c => c.roles?.some(r => activeRoles.has(r)));
 
-    const phaseChecks = filterByRole(ALL_CHECKS.filter((c) => c.phase === activePhase));
-    const selectedCheck = selectedCheckId ? ALL_CHECKS.find((c) => c.id === selectedCheckId) : null;
+    const phaseChecks = filterByRole(projectChecks.filter((c) => c.phase === activePhase));
+    const selectedCheck = selectedCheckId ? projectChecks.find((c) => c.id === selectedCheckId) : null;
 
     // Criteria-based progress: total = unique criteria, done = criteria where all pages are non-pending
-    const totalChecks = ALL_CHECKS.length;
-    const completedChecks = ALL_CHECKS.filter((check) =>
+    const totalChecks = projectChecks.length;
+    const completedChecks = projectChecks.filter((check) =>
         project.pages.length > 0 &&
         project.pages.every(
             (page) => page.checks.find((r) => r.checkId === check.id)?.status !== "pending"
@@ -278,7 +311,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
                     {PHASES.map((phase) => {
                         // Count criteria done = at least one page has a non-pending result
-                        const phaseCheckIds = ALL_CHECKS.filter(c => c.phase === phase.id).map(c => c.id);
+                        const phaseCheckIds = projectChecks.filter(c => c.phase === phase.id).map(c => c.id);
                         const pt = phaseCheckIds.length;
                         const pd = phaseCheckIds.filter(checkId =>
                             project.pages.some(page =>
@@ -288,7 +321,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
                         const isActive = activePhase === phase.id;
                         const isCollapsed = collapsedPhases.has(phase.id);
-                        const phaseChecksLocal = filterByRole(ALL_CHECKS.filter((c) => c.phase === phase.id));
+                        const phaseChecksLocal = filterByRole(projectChecks.filter((c) => c.phase === phase.id));
 
                         return (
                             <div key={phase.id}>
@@ -328,14 +361,23 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                         {phaseChecksLocal.map((check) => {
                                             const isSelected = selectedCheckId === check.id;
 
-                                            // Check status across pages
-                                            const statuses = project.pages.map(p => p.checks.find(r => r.checkId === check.id)?.status ?? "pending");
-                                            const allDone = statuses.every(s => s !== "pending");
-                                            const anyFails = statuses.some(s => s === "fail" || s === "partial");
+                                            // Priority: fail > partial > pending > pass > na
+                                            // Only consider pages that actually have this check (exclude missing → undefined)
+                                            const pri = { fail: 0, partial: 1, pending: 2, pass: 3, na: 4 } as const;
+                                            const pageStatuses = project.pages
+                                                .map(p => p.checks.find(r => r.checkId === check.id)?.status)
+                                                .filter((s): s is CheckStatus => s !== undefined);
+                                            const dominant: CheckStatus = pageStatuses.length === 0
+                                                ? "pending"
+                                                : pageStatuses.reduce((a, b) => (pri[a] ?? 2) <= (pri[b] ?? 2) ? a : b);
 
-                                            const icon = allDone
-                                                ? (anyFails ? <XCircle className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />)
-                                                : <Circle className="w-4 h-4 text-muted-foreground" />;
+                                            const icon = {
+                                                fail:    <XCircle className="w-4 h-4 text-red-500" />,
+                                                partial: <AlertCircle className="w-4 h-4 text-amber-500" />,
+                                                pending: <Circle className="w-4 h-4 text-muted-foreground" />,
+                                                pass:    <CheckCircle2 className="w-4 h-4 text-green-500" />,
+                                                na:      <MinusCircle className="w-4 h-4 text-muted-foreground" />,
+                                            }[dominant] ?? <Circle className="w-4 h-4 text-muted-foreground" />;
 
                                             return (
                                                 <button
@@ -444,26 +486,65 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                         <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                                             Pages ({project.pages.length})
                                         </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-7 text-xs"
-                                            onClick={() => {
-                                                let updated = { ...project };
-                                                updated.pages.forEach(p => {
-                                                    const existing = p.checks.find(c => c.checkId === selectedCheck.id);
-                                                    if (existing && existing.status === "pending") {
-                                                        updated = updateCheckResult(updated, p.id, { ...existing, status: "pass" });
-                                                    }
-                                                });
-                                                saveProject(updated);
-                                                setProject(updated);
-                                                triggerSaved();
-                                            }}
-                                        >
-                                            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
-                                            Pass All Pending
-                                        </Button>
+                                        <div className="flex h-7">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-7 text-xs rounded-r-none border-r-0 gap-1.5"
+                                                onClick={() => {
+                                                    let updated = { ...project };
+                                                    updated.pages.forEach(p => {
+                                                        const existing = p.checks.find(c => c.checkId === selectedCheck.id);
+                                                        if (existing) {
+                                                            updated = updateCheckResult(updated, p.id, { ...existing, status: bulkStatus });
+                                                        }
+                                                    });
+                                                    saveProject(updated);
+                                                    setProject(updated);
+                                                    triggerSaved();
+                                                }}
+                                            >
+                                                {statusConfig[bulkStatus].icon}
+                                                {statusConfig[bulkStatus].label} All
+                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-7 w-7 rounded-l-none px-0"
+                                                    >
+                                                        <ChevronDown className="w-3 h-3" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="min-w-36">
+                                                    {(["pass", "fail", "partial", "na", "pending"] as CheckStatus[]).map(s => (
+                                                        <DropdownMenuItem
+                                                            key={s}
+                                                            onClick={() => setBulkStatus(s)}
+                                                            className="flex items-center gap-2 text-xs"
+                                                        >
+                                                            {statusConfig[s].icon}
+                                                            <span>{statusConfig[s].label}</span>
+                                                            {bulkStatus === s && <Check className="w-3 h-3 ml-auto" />}
+                                                        </DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </div>
+
+                                    {/* General criteria comment */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                            General comment (applies to entire site)
+                                        </label>
+                                        <Textarea
+                                            placeholder="Overall observations about this criterion across the site..."
+                                            value={generalCommentDraft}
+                                            onChange={(e) => handleGeneralCommentChange(selectedCheck.id, e.target.value)}
+                                            className="text-xs min-h-[72px] resize-y bg-white dark:bg-background"
+                                        />
                                     </div>
 
                                     {/* Pages list */}

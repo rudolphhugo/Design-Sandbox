@@ -1,5 +1,10 @@
-import type { AuditProject, AuditPage, CheckResult } from "./audit-types";
+import type { AuditProject, AuditPage, CheckResult, ConformanceTarget } from "./audit-types";
 import { ALL_CHECKS } from "./audit-checks";
+
+export function getChecksForTarget(target: ConformanceTarget): typeof ALL_CHECKS {
+  const includeAAA = target === "WCAG 2.1 AAA" || target === "WCAG 2.2 AAA";
+  return includeAAA ? ALL_CHECKS : ALL_CHECKS.filter((c) => c.level !== "AAA");
+}
 
 const STORAGE_KEY = "a11y-audit-projects";
 
@@ -87,9 +92,11 @@ export function getPageProgress(page: AuditPage): {
 
 export function getPhaseProgress(
   page: AuditPage,
-  phase: string
+  phase: string,
+  target?: ConformanceTarget
 ): { done: number; total: number } {
-  const phaseChecks = ALL_CHECKS.filter((c) => c.phase === phase);
+  const checks = target ? getChecksForTarget(target) : ALL_CHECKS;
+  const phaseChecks = checks.filter((c) => c.phase === phase);
   const results = page.checks.filter((c) =>
     phaseChecks.some((pc) => pc.id === c.checkId)
   );
@@ -99,7 +106,22 @@ export function getPhaseProgress(
   };
 }
 
+export function updateCriteriaComment(
+  project: AuditProject,
+  checkId: string,
+  comment: string
+): AuditProject {
+  return {
+    ...project,
+    criteriaComments: {
+      ...project.criteriaComments,
+      [checkId]: comment,
+    },
+  };
+}
+
 export function getFindings(project: AuditProject) {
+  const projectChecks = getChecksForTarget(project.conformanceTarget);
   const findings: Array<{
     page: AuditPage;
     check: CheckResult;
@@ -109,7 +131,7 @@ export function getFindings(project: AuditProject) {
   for (const page of project.pages) {
     for (const check of page.checks) {
       if (check.status === "fail" || check.status === "partial") {
-        const checkDef = ALL_CHECKS.find((c) => c.id === check.checkId);
+        const checkDef = projectChecks.find((c) => c.id === check.checkId);
         if (checkDef) findings.push({ page, check, checkDef });
       }
     }

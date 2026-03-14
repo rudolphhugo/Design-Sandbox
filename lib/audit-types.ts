@@ -50,4 +50,5 @@ export interface AuditProject {
   auditDate: string;
   createdAt: string;
   pages: AuditPage[];
+  criteriaComments?: Record<string, string>;
 }

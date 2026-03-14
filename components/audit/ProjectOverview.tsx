@@ -25,8 +25,8 @@ import {
   saveProject,
   createPage,
   getPageProgress,
+  getChecksForTarget,
 } from "@/lib/audit-storage";
-import { ALL_CHECKS } from "@/lib/audit-checks";
 import type { AuditProject } from "@/lib/audit-types";
 
 interface Props {
@@ -125,8 +125,9 @@ export function ProjectOverview({ projectId }: Props) {
   if (!project) return null;
 
   // Criteria-based progress: total = unique criteria, done = criteria where all pages are non-pending
-  const totalCriteria = ALL_CHECKS.length;
-  const doneCriteria = ALL_CHECKS.filter((check) =>
+  const projectChecks = getChecksForTarget(project.conformanceTarget);
+  const totalCriteria = projectChecks.length;
+  const doneCriteria = projectChecks.filter((check) =>
     project.pages.length > 0 &&
     project.pages.every(
       (page) => page.checks.find((r) => r.checkId === check.id)?.status !== "pending"
