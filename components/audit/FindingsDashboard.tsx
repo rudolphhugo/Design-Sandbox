@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, MinusCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, AlertCircle, MinusCircle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -54,12 +54,21 @@ export function FindingsDashboard({ projectId }: Props) {
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div>
+          <div className="flex-1 min-w-0">
             <h1 className="text-base font-semibold">Findings — {project.clientName}</h1>
             <p className="text-xs text-muted-foreground">
               {project.auditDate} · {project.conformanceTarget}
             </p>
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 shrink-0"
+            onClick={() => router.push(`/layouts/a11y-audit/${projectId}/report`)}
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5" />
+            Report
+          </Button>
         </div>
       </div>
 

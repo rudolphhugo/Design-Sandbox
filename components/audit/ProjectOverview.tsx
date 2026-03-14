@@ -15,6 +15,7 @@ import {
   Check,
   X,
   FileText,
+  ScrollText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -200,14 +201,25 @@ export function ProjectOverview({ projectId }: Props) {
             </div>
 
             {project.pages.length > 0 && (
-              <Button
-                size="sm"
-                className="h-8 text-xs shrink-0"
-                onClick={() => router.push(`/layouts/a11y-audit/${projectId}/criteria`)}
-              >
-                <FileText className="w-3.5 h-3.5 mr-1.5" />
-                {auditLabel}
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={() => router.push(`/layouts/a11y-audit/${projectId}/report`)}
+                >
+                  <ScrollText className="w-3.5 h-3.5 mr-1.5" />
+                  Report
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => router.push(`/layouts/a11y-audit/${projectId}/criteria`)}
+                >
+                  <FileText className="w-3.5 h-3.5 mr-1.5" />
+                  {auditLabel}
+                </Button>
+              </div>
             )}
           </div>
 
