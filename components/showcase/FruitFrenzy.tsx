@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { Camera, RefreshCw, ChevronRight, RotateCcw, LogOut } from "lucide-react"
+import { motion, AnimatePresence } from "motion/react"
 
 // ─── Stage Definitions ────────────────────────────────────────────────────────
 
@@ -75,8 +76,6 @@ const FRUIT_SIZE = 44
 interface ScorePopup {
   id: number
   value: number   // +1 or -1
-  anim: number    // 1.0 → 0.0
-  y: number       // current y (floats upward)
 }
 
 interface Fruit {
@@ -118,7 +117,6 @@ export function FruitFrenzy() {
 
   // Game refs (rAF loop — no stale closures)
   const fruitsRef          = useRef<Fruit[]>([])
-  const scorePopupsRef     = useRef<ScorePopup[]>([])
   const stageFruitsRef     = useRef(0)
   const totalScoreRef      = useRef(0)
   const currentStageRef    = useRef(0)
@@ -139,6 +137,7 @@ export function FruitFrenzy() {
   const [cameraReady, setCameraReady]         = useState(false)
   const [loadingModel, setLoadingModel]       = useState(false)
   const [completedStages, setCompletedStages] = useState<boolean[]>([false, false, false, false, false])
+  const [scorePopups, setScorePopups]         = useState<{ id: number; value: number }[]>([])
 
   // ── Spawn ──────────────────────────────────────────────────────────────────
   const spawnFruit = useCallback((canvas: HTMLCanvasElement) => {
@@ -265,12 +264,10 @@ export function FruitFrenzy() {
             }
             setStageFruits(stageFruitsRef.current)
             setTotalScore(totalScoreRef.current)
-            scorePopupsRef.current.push({
-              id: nextFruitId.current++,
-              value: fruit.isCandy ? -1 : 1,
-              anim: 1,
-              y: H / 2,
-            })
+            const popupId = nextFruitId.current++
+            const popupValue = fruit.isCandy ? -1 : 1
+            setScorePopups(prev => [...prev, { id: popupId, value: popupValue }])
+            setTimeout(() => setScorePopups(prev => prev.filter(p => p.id !== popupId)), 750)
 
             if (!fruit.isCandy && stageFruitsRef.current >= stage.target) {
               completedStagesRef.current[currentStageRef.current] = true
@@ -319,65 +316,6 @@ export function FruitFrenzy() {
         }
       }
 
-      // ── Score popups ─────────────────────────────────────────────────────
-      scorePopupsRef.current = scorePopupsRef.current.filter(p => p.anim > 0)
-      for (const popup of scorePopupsRef.current) {
-        popup.anim -= dt * 1.8
-        popup.y -= dt * 60
-        const t = 1 - popup.anim
-        const size = 80 + t * 40          // grows from 80 → 120px
-        const alpha = Math.min(1, popup.anim * 2)
-        ctx.save()
-        ctx.font = `900 ${size}px system-ui, sans-serif`
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        ctx.fillStyle = popup.value > 0
-          ? `rgba(74, 222, 128, ${alpha})`   // green
-          : `rgba(248, 113, 113, ${alpha})`  // red
-        ctx.shadowColor = popup.value > 0 ? "rgba(0,200,80,0.6)" : "rgba(220,50,50,0.6)"
-        ctx.shadowBlur = 24
-        ctx.fillText(popup.value > 0 ? "+1" : "-1", W / 2, popup.y)
-        ctx.restore()
-      }
-
-      // ── HUD ──────────────────────────────────────────────────────────────
-      ctx.fillStyle = "rgba(0,0,0,0.5)"
-      ctx.fillRect(0, 0, W, 56)
-
-      // Stage name
-      ctx.font = "bold 17px system-ui, sans-serif"
-      ctx.fillStyle = stage.color
-      ctx.textAlign = "left"
-      ctx.textBaseline = "middle"
-      ctx.fillText(stage.name, 16, 28)
-
-      // Progress bar
-      const progress = Math.min(stageFruitsRef.current / stage.target, 1)
-      const barW = 180
-      const barX = W / 2 - barW / 2
-      ctx.fillStyle = "rgba(255,255,255,0.15)"
-      ctx.beginPath()
-      ctx.roundRect(barX, 18, barW, 20, 10)
-      ctx.fill()
-      if (progress > 0) {
-        ctx.fillStyle = stage.color
-        ctx.beginPath()
-        ctx.roundRect(barX, 18, barW * progress, 20, 10)
-        ctx.fill()
-      }
-      ctx.font = "bold 12px system-ui, sans-serif"
-      ctx.fillStyle = "#fff"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText(`${stageFruitsRef.current} / ${stage.target}`, W / 2, 28)
-
-      // Timer
-      const tc = timerRef.current
-      ctx.textAlign = "right"
-      ctx.font = "bold 20px system-ui, sans-serif"
-      ctx.fillStyle = tc <= 10 ? "#f87171" : "#fff"
-      ctx.textBaseline = "middle"
-      ctx.fillText(`${Math.ceil(tc)}s`, W - 16, 28)
     }
 
     rafRef.current = requestAnimationFrame(runLoop)
@@ -419,7 +357,7 @@ export function FruitFrenzy() {
   // ── Stage start ────────────────────────────────────────────────────────────
   const startStage = useCallback((stageIndex: number) => {
     fruitsRef.current = []
-    scorePopupsRef.current = []
+    setScorePopups([])
     stageFruitsRef.current = 0
     spawnCoolRef.current = 0
     lastTimeRef.current = 0
@@ -487,6 +425,54 @@ export function FruitFrenzy() {
       <div className="relative flex-1 min-h-0 flex items-center justify-center">
         <video ref={videoRef} className="absolute opacity-0 pointer-events-none" muted playsInline />
         <canvas ref={canvasRef} className="h-full w-full object-contain" />
+
+        {/* ── Crisp HTML HUD (replaces canvas-drawn HUD) ───────────────────── */}
+        {gameState === "playing" && (
+          <div className="absolute top-0 inset-x-0 z-10 flex items-center h-14 px-4 bg-black/50 pointer-events-none"
+               style={{ fontFamily: "var(--font-nunito)" }}>
+            <span className="text-base font-bold" style={{ color: stage.color }}>{stage.name}</span>
+            <div className="flex-1 flex justify-center">
+              <div className="relative w-48 h-5 rounded-full overflow-hidden bg-white/15">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-150"
+                  style={{ width: `${Math.min((stageFruits / stage.target) * 100, 100)}%`, background: stage.color }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">
+                  {stageFruits} / {stage.target}
+                </span>
+              </div>
+            </div>
+            <span className={`text-xl font-bold tabular-nums ${timeLeft <= 10 ? "text-red-400" : "text-white"}`}>
+              {timeLeft}s
+            </span>
+          </div>
+        )}
+
+        {/* ── Crisp score popups ────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {scorePopups.map(popup => (
+            <motion.div
+              key={popup.id}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+              initial={{ opacity: 1, y: 0, scale: 0.7 }}
+              animate={{ opacity: 0, y: -100, scale: 1.3 }}
+              transition={{ duration: 0.75, ease: "easeOut" }}
+            >
+              <span
+                className={`font-black leading-none ${popup.value > 0 ? "text-green-400" : "text-red-400"}`}
+                style={{
+                  fontSize: 96,
+                  fontFamily: "var(--font-nunito)",
+                  textShadow: popup.value > 0
+                    ? "0 0 32px rgba(74,222,128,0.9)"
+                    : "0 0 32px rgba(248,113,113,0.9)",
+                }}
+              >
+                {popup.value > 0 ? "+1" : "-1"}
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {/* ── Floating Exit button (shown during any active game state) ─────── */}
         {cameraReady && gameState !== "idle" && (
