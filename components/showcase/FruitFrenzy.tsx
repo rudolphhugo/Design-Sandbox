@@ -7,67 +7,77 @@ import { Camera, RefreshCw, ChevronRight, RotateCcw, LogOut } from "lucide-react
 
 const STAGES = [
   {
-    name: "Apple Academy",
-    emoji: "🍎",
-    tagline: "Just you and the apples",
-    fruits: ["🍎"],
+    name: "Egg Hunt Beginners",
+    emoji: "🥚",
+    tagline: "One egg at a time",
+    fruits: ["🥚"],
     target: 5,
     timeLimit: 30,
     baseSpeed: 1.6,
     maxFruits: 1,
-    color: "#ef4444",
+    color: "#f9a8d4",
   },
   {
-    name: "Citrus Circuit",
-    emoji: "🍊",
-    tagline: "Squeeze every last drop",
-    fruits: ["🍊", "🍋"],
+    name: "Chick Chase",
+    emoji: "🐣",
+    tagline: "They're hatching fast!",
+    fruits: ["🥚", "🐣"],
     target: 8,
     timeLimit: 35,
     baseSpeed: 2.1,
     maxFruits: 2,
-    color: "#f97316",
+    color: "#fde68a",
   },
   {
-    name: "Berry Blitz",
-    emoji: "🍓",
-    tagline: "Small but mighty",
-    fruits: ["🍓", "🍇", "🍒"],
+    name: "Bunny Scramble",
+    emoji: "🐰",
+    tagline: "The bunnies are loose",
+    fruits: ["🥚", "🐣", "🐰"],
     target: 10,
     timeLimit: 35,
     baseSpeed: 2.6,
     maxFruits: 3,
-    color: "#ec4899",
+    color: "#a5f3fc",
   },
   {
-    name: "Tropical Tornado",
-    emoji: "🌴",
-    tagline: "Chaos in paradise",
-    fruits: ["🍌", "🍉", "🍑", "🍍"],
+    name: "Spring Fling",
+    emoji: "🌷",
+    tagline: "Blooming chaos",
+    fruits: ["🥚", "🐣", "🐇", "🌷", "🌸"],
     target: 12,
     timeLimit: 40,
     baseSpeed: 3.2,
     maxFruits: 5,
-    color: "#84cc16",
+    color: "#86efac",
   },
   {
-    name: "Mega Mango Madness",
-    emoji: "🥭",
-    tagline: "The ultimate fruit frenzy",
-    fruits: ["🍎", "🍊", "🍋", "🍇", "🍓", "🍑", "🍌", "🍉"],
+    name: "Easter Egg Madness",
+    emoji: "🎉",
+    tagline: "The ultimate egg frenzy",
+    fruits: ["🥚", "🐣", "🐰", "🐇", "🌷", "🌸", "🦋", "🐥"],
     target: 15,
     timeLimit: 45,
     baseSpeed: 4.0,
     maxFruits: 7,
-    color: "#f59e0b",
+    color: "#c4b5fd",
   },
 ]
 
+// Penalty items: fruits (don't eat these on Easter!)
+const CANDIES = ["🍎", "🍊", "🍋", "🍇", "🍓", "🍌"]
+const CANDY_CHANCE = 0.2         // 20% of spawns are penalty fruits
 const MOUTH_OPEN_RATIO = 0.28
 const CATCH_RADIUS = 52
 const FRUIT_SIZE = 44
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ScorePopup {
+  id: number
+  value: number   // +1 or -1
+  anim: number    // 1.0 → 0.0
+  y: number       // current y (floats upward)
+}
 
 interface Fruit {
   id: number
@@ -79,6 +89,7 @@ interface Fruit {
   wobbleAmp: number
   eaten: boolean
   eatAnim: number
+  isCandy: boolean
 }
 
 type GameState = "idle" | "countdown" | "playing" | "stage_complete" | "failed" | "victory"
@@ -107,6 +118,7 @@ export function FruitFrenzy() {
 
   // Game refs (rAF loop — no stale closures)
   const fruitsRef          = useRef<Fruit[]>([])
+  const scorePopupsRef     = useRef<ScorePopup[]>([])
   const stageFruitsRef     = useRef(0)
   const totalScoreRef      = useRef(0)
   const currentStageRef    = useRef(0)
@@ -131,10 +143,13 @@ export function FruitFrenzy() {
   // ── Spawn ──────────────────────────────────────────────────────────────────
   const spawnFruit = useCallback((canvas: HTMLCanvasElement) => {
     const stage = STAGES[currentStageRef.current]
+    const isCandy = Math.random() < CANDY_CHANCE
     const speed = stage.baseSpeed * (0.8 + Math.random() * 0.4)
     fruitsRef.current.push({
       id: nextFruitId.current++,
-      emoji: stage.fruits[Math.floor(Math.random() * stage.fruits.length)],
+      emoji: isCandy
+        ? CANDIES[Math.floor(Math.random() * CANDIES.length)]
+        : stage.fruits[Math.floor(Math.random() * stage.fruits.length)],
       x: FRUIT_SIZE + Math.random() * (canvas.width - FRUIT_SIZE * 2),
       y: -FRUIT_SIZE,
       speed,
@@ -142,6 +157,7 @@ export function FruitFrenzy() {
       wobbleAmp: 20 + Math.random() * 30,
       eaten: false,
       eatAnim: 0,
+      isCandy,
     })
   }, [])
 
@@ -240,12 +256,23 @@ export function FruitFrenzy() {
           if (dist < CATCH_RADIUS && mouthOpen) {
             fruit.eaten = true
             fruit.eatAnim = 1
-            stageFruitsRef.current += 1
-            totalScoreRef.current += 1
+            if (fruit.isCandy) {
+              stageFruitsRef.current = Math.max(0, stageFruitsRef.current - 1)
+              totalScoreRef.current = Math.max(0, totalScoreRef.current - 1)
+            } else {
+              stageFruitsRef.current += 1
+              totalScoreRef.current += 1
+            }
             setStageFruits(stageFruitsRef.current)
             setTotalScore(totalScoreRef.current)
+            scorePopupsRef.current.push({
+              id: nextFruitId.current++,
+              value: fruit.isCandy ? -1 : 1,
+              anim: 1,
+              y: H / 2,
+            })
 
-            if (stageFruitsRef.current >= stage.target) {
+            if (!fruit.isCandy && stageFruitsRef.current >= stage.target) {
               completedStagesRef.current[currentStageRef.current] = true
               setCompletedStages([...completedStagesRef.current])
               const isLast = currentStageRef.current >= STAGES.length - 1
@@ -273,6 +300,9 @@ export function FruitFrenzy() {
           ctx.restore()
 
           if (fruit.eatAnim > 0.3) {
+            const sparkleColor = fruit.isCandy
+              ? `rgba(248, 113, 113, ${fruit.eatAnim})`   // red for candy
+              : `rgba(255, 220, 50, ${fruit.eatAnim})`    // gold for fruit
             for (let i = 0; i < 6; i++) {
               const angle = (i / 6) * Math.PI * 2
               const r = (1 - fruit.eatAnim) * 50
@@ -282,11 +312,32 @@ export function FruitFrenzy() {
                 fruit.y + Math.sin(angle) * r,
                 4 * fruit.eatAnim, 0, Math.PI * 2
               )
-              ctx.fillStyle = `rgba(255, 220, 50, ${fruit.eatAnim})`
+              ctx.fillStyle = sparkleColor
               ctx.fill()
             }
           }
         }
+      }
+
+      // ── Score popups ─────────────────────────────────────────────────────
+      scorePopupsRef.current = scorePopupsRef.current.filter(p => p.anim > 0)
+      for (const popup of scorePopupsRef.current) {
+        popup.anim -= dt * 1.8
+        popup.y -= dt * 60
+        const t = 1 - popup.anim
+        const size = 80 + t * 40          // grows from 80 → 120px
+        const alpha = Math.min(1, popup.anim * 2)
+        ctx.save()
+        ctx.font = `900 ${size}px system-ui, sans-serif`
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillStyle = popup.value > 0
+          ? `rgba(74, 222, 128, ${alpha})`   // green
+          : `rgba(248, 113, 113, ${alpha})`  // red
+        ctx.shadowColor = popup.value > 0 ? "rgba(0,200,80,0.6)" : "rgba(220,50,50,0.6)"
+        ctx.shadowBlur = 24
+        ctx.fillText(popup.value > 0 ? "+1" : "-1", W / 2, popup.y)
+        ctx.restore()
       }
 
       // ── HUD ──────────────────────────────────────────────────────────────
@@ -368,6 +419,7 @@ export function FruitFrenzy() {
   // ── Stage start ────────────────────────────────────────────────────────────
   const startStage = useCallback((stageIndex: number) => {
     fruitsRef.current = []
+    scorePopupsRef.current = []
     stageFruitsRef.current = 0
     spawnCoolRef.current = 0
     lastTimeRef.current = 0
@@ -450,11 +502,11 @@ export function FruitFrenzy() {
         {/* ── Start screen ─────────────────────────────────────────────────── */}
         {!cameraReady && !loadingModel && (
           <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-950 via-slate-900 to-emerald-950" />
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-950 via-purple-950 to-sky-950" />
 
-            {/* Floating fruit bg */}
+            {/* Floating Easter bg */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {["🍎", "🍊", "🍋", "🍇", "🍓", "🍌", "🍉", "🍑", "🥭", "🍍"].map((emoji, i) => (
+              {["🥚", "🐣", "🐰", "🌷", "🌸", "🐇", "🦋", "🐥", "🌼", "🪺"].map((emoji, i) => (
                 <div
                   key={i}
                   className="absolute text-4xl animate-bounce"
@@ -472,13 +524,13 @@ export function FruitFrenzy() {
             </div>
 
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
-              <div className="text-7xl">🍎🍊🍋</div>
+              <div className="text-7xl">🥚🐣🌷</div>
               <div>
                 <h1 className="text-5xl font-black text-white mb-2 tracking-tight">
-                  Fruit <span className="text-emerald-400">Frenzy</span>
+                  Easter <span className="text-pink-400">Frenzy</span>
                 </h1>
                 <p className="text-slate-300 text-base max-w-sm">
-                  Open your mouth to catch falling fruits before time runs out — 5 stages of fruity chaos!
+                  Open your mouth to catch falling Easter eggs — but watch out for sneaky fruits!
                 </p>
               </div>
 
@@ -517,10 +569,10 @@ export function FruitFrenzy() {
         {/* ── Ready ─────────────────────────────────────────────────────────── */}
         {cameraReady && gameState === "idle" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/60">
-            <div className="text-5xl">😮🍓🍊</div>
+            <div className="text-5xl">😮🥚🐣</div>
             <div className="text-center">
               <h2 className="text-2xl font-bold text-white mb-1">Ready?</h2>
-              <p className="text-slate-300 text-sm">Open your mouth to catch falling fruits!</p>
+              <p className="text-slate-300 text-sm">Catch the eggs — avoid the fruit!</p>
               <p className="text-slate-400 text-xs mt-1">5 stages · Don't let the clock run out</p>
             </div>
             <button
@@ -649,12 +701,12 @@ export function FruitFrenzy() {
         {/* ── Victory ───────────────────────────────────────────────────────── */}
         {gameState === "victory" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80">
-            <div className="text-6xl">🏆🎉🥭</div>
+            <div className="text-6xl">🏆🎉🥚</div>
             <div className="text-center">
-              <p className="text-yellow-400 text-sm font-bold uppercase tracking-widest mb-1">You Did It!</p>
+              <p className="text-yellow-400 text-sm font-bold uppercase tracking-widest mb-1">Happy Easter!</p>
               <h2 className="text-4xl font-black text-white mb-2">All Stages Complete!</h2>
-              <p className="text-5xl font-black text-emerald-400 mb-1">{totalScore}</p>
-              <p className="text-slate-300 text-sm">Total fruits devoured</p>
+              <p className="text-5xl font-black text-pink-400 mb-1">{totalScore}</p>
+              <p className="text-slate-300 text-sm">Total eggs collected</p>
             </div>
             <div className="flex gap-2">
               {STAGES.map((_, i) => (
