@@ -1914,7 +1914,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     whyItMatters:
       "The EU Web Accessibility Directive (Directive 2016/2102), implemented in Sweden via Lag (2018:1937), legally requires all public sector websites to publish an accessibility statement. This is a hard legal obligation, not a best practice. The statement must be reachable from every page — a persistent footer link is the standard approach.",
     howToTest:
-      "1. Check the website footer on multiple pages — is there a link to an accessibility statement (Swedish: tillgänglighetsredogörelse)?\n2. Does the link work and lead to a dedicated page?\n3. Is the statement available in all language versions of the site (Swedish + English for Chalmers)?",
+      "1. Check the website footer on multiple pages — is there a link to an accessibility statement (Swedish: tillgänglighetsredogörelse)?\n2. Does the link work and lead to a dedicated page?\n3. Is the statement available in all language versions of the site (e.g. Swedish + English)?",
     tool: "Manual inspection",
     passCondition:
       "A dedicated accessibility statement page exists, is reachable from the footer on all pages, and is available in all published languages.",
