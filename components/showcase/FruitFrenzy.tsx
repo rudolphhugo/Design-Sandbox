@@ -2,72 +2,81 @@
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { Camera, RefreshCw, ChevronRight, RotateCcw, LogOut } from "lucide-react"
+import { motion, AnimatePresence } from "motion/react"
 
 // ─── Stage Definitions ────────────────────────────────────────────────────────
 
 const STAGES = [
   {
-    name: "Apple Academy",
-    emoji: "🍎",
-    tagline: "Just you and the apples",
-    fruits: ["🍎"],
+    name: "Egg Hunt Beginners",
+    emoji: "🥚",
+    tagline: "One egg at a time",
+    fruits: ["🥚"],
     target: 5,
     timeLimit: 30,
     baseSpeed: 1.6,
     maxFruits: 1,
-    color: "#ef4444",
+    color: "#f9a8d4",
   },
   {
-    name: "Citrus Circuit",
-    emoji: "🍊",
-    tagline: "Squeeze every last drop",
-    fruits: ["🍊", "🍋"],
+    name: "Chick Chase",
+    emoji: "🐣",
+    tagline: "They're hatching fast!",
+    fruits: ["🥚", "🐣"],
     target: 8,
     timeLimit: 35,
     baseSpeed: 2.1,
     maxFruits: 2,
-    color: "#f97316",
+    color: "#fde68a",
   },
   {
-    name: "Berry Blitz",
-    emoji: "🍓",
-    tagline: "Small but mighty",
-    fruits: ["🍓", "🍇", "🍒"],
+    name: "Bunny Scramble",
+    emoji: "🐰",
+    tagline: "The bunnies are loose",
+    fruits: ["🥚", "🐣", "🐰"],
     target: 10,
     timeLimit: 35,
     baseSpeed: 2.6,
     maxFruits: 3,
-    color: "#ec4899",
+    color: "#a5f3fc",
   },
   {
-    name: "Tropical Tornado",
-    emoji: "🌴",
-    tagline: "Chaos in paradise",
-    fruits: ["🍌", "🍉", "🍑", "🍍"],
+    name: "Spring Fling",
+    emoji: "🌷",
+    tagline: "Blooming chaos",
+    fruits: ["🥚", "🐣", "🐇", "🌷", "🌸"],
     target: 12,
     timeLimit: 40,
     baseSpeed: 3.2,
     maxFruits: 5,
-    color: "#84cc16",
+    color: "#86efac",
   },
   {
-    name: "Mega Mango Madness",
-    emoji: "🥭",
-    tagline: "The ultimate fruit frenzy",
-    fruits: ["🍎", "🍊", "🍋", "🍇", "🍓", "🍑", "🍌", "🍉"],
+    name: "Easter Egg Madness",
+    emoji: "🎉",
+    tagline: "The ultimate egg frenzy",
+    fruits: ["🥚", "🐣", "🐰", "🐇", "🌷", "🌸", "🦋", "🐥"],
     target: 15,
     timeLimit: 45,
     baseSpeed: 4.0,
     maxFruits: 7,
-    color: "#f59e0b",
+    color: "#c4b5fd",
   },
 ]
 
+// Penalty items: fruits (don't eat these on Easter!)
+const CANDIES = ["🍎", "🍊", "🍋", "🍇", "🍓", "🍌"]
+const CANDY_CHANCE = 0.2         // 20% of spawns are penalty fruits
 const MOUTH_OPEN_RATIO = 0.28
 const CATCH_RADIUS = 52
 const FRUIT_SIZE = 44
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ScorePopup {
+  id: number
+  value: number   // +1 or -1
+}
 
 interface Fruit {
   id: number
@@ -79,6 +88,7 @@ interface Fruit {
   wobbleAmp: number
   eaten: boolean
   eatAnim: number
+  isCandy: boolean
 }
 
 type GameState = "idle" | "countdown" | "playing" | "stage_complete" | "failed" | "victory"
@@ -127,14 +137,18 @@ export function FruitFrenzy() {
   const [cameraReady, setCameraReady]         = useState(false)
   const [loadingModel, setLoadingModel]       = useState(false)
   const [completedStages, setCompletedStages] = useState<boolean[]>([false, false, false, false, false])
+  const [scorePopups, setScorePopups]         = useState<{ id: number; value: number }[]>([])
 
   // ── Spawn ──────────────────────────────────────────────────────────────────
   const spawnFruit = useCallback((canvas: HTMLCanvasElement) => {
     const stage = STAGES[currentStageRef.current]
+    const isCandy = Math.random() < CANDY_CHANCE
     const speed = stage.baseSpeed * (0.8 + Math.random() * 0.4)
     fruitsRef.current.push({
       id: nextFruitId.current++,
-      emoji: stage.fruits[Math.floor(Math.random() * stage.fruits.length)],
+      emoji: isCandy
+        ? CANDIES[Math.floor(Math.random() * CANDIES.length)]
+        : stage.fruits[Math.floor(Math.random() * stage.fruits.length)],
       x: FRUIT_SIZE + Math.random() * (canvas.width - FRUIT_SIZE * 2),
       y: -FRUIT_SIZE,
       speed,
@@ -142,6 +156,7 @@ export function FruitFrenzy() {
       wobbleAmp: 20 + Math.random() * 30,
       eaten: false,
       eatAnim: 0,
+      isCandy,
     })
   }, [])
 
@@ -240,12 +255,21 @@ export function FruitFrenzy() {
           if (dist < CATCH_RADIUS && mouthOpen) {
             fruit.eaten = true
             fruit.eatAnim = 1
-            stageFruitsRef.current += 1
-            totalScoreRef.current += 1
+            if (fruit.isCandy) {
+              stageFruitsRef.current = Math.max(0, stageFruitsRef.current - 1)
+              totalScoreRef.current = Math.max(0, totalScoreRef.current - 1)
+            } else {
+              stageFruitsRef.current += 1
+              totalScoreRef.current += 1
+            }
             setStageFruits(stageFruitsRef.current)
             setTotalScore(totalScoreRef.current)
+            const popupId = nextFruitId.current++
+            const popupValue = fruit.isCandy ? -1 : 1
+            setScorePopups(prev => [...prev, { id: popupId, value: popupValue }])
+            setTimeout(() => setScorePopups(prev => prev.filter(p => p.id !== popupId)), 750)
 
-            if (stageFruitsRef.current >= stage.target) {
+            if (!fruit.isCandy && stageFruitsRef.current >= stage.target) {
               completedStagesRef.current[currentStageRef.current] = true
               setCompletedStages([...completedStagesRef.current])
               const isLast = currentStageRef.current >= STAGES.length - 1
@@ -273,6 +297,9 @@ export function FruitFrenzy() {
           ctx.restore()
 
           if (fruit.eatAnim > 0.3) {
+            const sparkleColor = fruit.isCandy
+              ? `rgba(248, 113, 113, ${fruit.eatAnim})`   // red for candy
+              : `rgba(255, 220, 50, ${fruit.eatAnim})`    // gold for fruit
             for (let i = 0; i < 6; i++) {
               const angle = (i / 6) * Math.PI * 2
               const r = (1 - fruit.eatAnim) * 50
@@ -282,51 +309,13 @@ export function FruitFrenzy() {
                 fruit.y + Math.sin(angle) * r,
                 4 * fruit.eatAnim, 0, Math.PI * 2
               )
-              ctx.fillStyle = `rgba(255, 220, 50, ${fruit.eatAnim})`
+              ctx.fillStyle = sparkleColor
               ctx.fill()
             }
           }
         }
       }
 
-      // ── HUD ──────────────────────────────────────────────────────────────
-      ctx.fillStyle = "rgba(0,0,0,0.5)"
-      ctx.fillRect(0, 0, W, 56)
-
-      // Stage name
-      ctx.font = "bold 17px system-ui, sans-serif"
-      ctx.fillStyle = stage.color
-      ctx.textAlign = "left"
-      ctx.textBaseline = "middle"
-      ctx.fillText(stage.name, 16, 28)
-
-      // Progress bar
-      const progress = Math.min(stageFruitsRef.current / stage.target, 1)
-      const barW = 180
-      const barX = W / 2 - barW / 2
-      ctx.fillStyle = "rgba(255,255,255,0.15)"
-      ctx.beginPath()
-      ctx.roundRect(barX, 18, barW, 20, 10)
-      ctx.fill()
-      if (progress > 0) {
-        ctx.fillStyle = stage.color
-        ctx.beginPath()
-        ctx.roundRect(barX, 18, barW * progress, 20, 10)
-        ctx.fill()
-      }
-      ctx.font = "bold 12px system-ui, sans-serif"
-      ctx.fillStyle = "#fff"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText(`${stageFruitsRef.current} / ${stage.target}`, W / 2, 28)
-
-      // Timer
-      const tc = timerRef.current
-      ctx.textAlign = "right"
-      ctx.font = "bold 20px system-ui, sans-serif"
-      ctx.fillStyle = tc <= 10 ? "#f87171" : "#fff"
-      ctx.textBaseline = "middle"
-      ctx.fillText(`${Math.ceil(tc)}s`, W - 16, 28)
     }
 
     rafRef.current = requestAnimationFrame(runLoop)
@@ -368,6 +357,7 @@ export function FruitFrenzy() {
   // ── Stage start ────────────────────────────────────────────────────────────
   const startStage = useCallback((stageIndex: number) => {
     fruitsRef.current = []
+    setScorePopups([])
     stageFruitsRef.current = 0
     spawnCoolRef.current = 0
     lastTimeRef.current = 0
@@ -431,16 +421,64 @@ export function FruitFrenzy() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="h-[calc(100vh-6rem)] flex flex-col bg-slate-950 overflow-hidden select-none">
+    <div className="h-[calc(100vh-6rem)] flex flex-col bg-slate-950 overflow-hidden select-none" style={{ fontFamily: "var(--font-nunito)" }}>
       <div className="relative flex-1 min-h-0 flex items-center justify-center">
         <video ref={videoRef} className="absolute opacity-0 pointer-events-none" muted playsInline />
         <canvas ref={canvasRef} className="h-full w-full object-contain" />
+
+        {/* ── Crisp HTML HUD (replaces canvas-drawn HUD) ───────────────────── */}
+        {gameState === "playing" && (
+          <div className="absolute top-0 inset-x-0 z-10 flex items-center h-14 px-4 bg-black/50 pointer-events-none"
+               style={{ fontFamily: "var(--font-nunito)" }}>
+            <span className="text-base font-bold" style={{ color: stage.color }}>{stage.name}</span>
+            <div className="flex-1 flex justify-center">
+              <div className="relative w-48 h-5 rounded-full overflow-hidden bg-white/15">
+                <div
+                  className="absolute inset-y-0 left-0 rounded-full transition-all duration-150"
+                  style={{ width: `${Math.min((stageFruits / stage.target) * 100, 100)}%`, background: stage.color }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">
+                  {stageFruits} / {stage.target}
+                </span>
+              </div>
+            </div>
+            <span className={`text-xl font-bold tabular-nums ${timeLeft <= 10 ? "text-red-400" : "text-white"}`}>
+              {timeLeft}s
+            </span>
+          </div>
+        )}
+
+        {/* ── Crisp score popups ────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {scorePopups.map(popup => (
+            <motion.div
+              key={popup.id}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+              initial={{ opacity: 1, y: 0, scale: 0.7 }}
+              animate={{ opacity: 0, y: -100, scale: 1.3 }}
+              transition={{ duration: 0.75, ease: "easeOut" }}
+            >
+              <span
+                className={`font-black leading-none ${popup.value > 0 ? "text-green-400" : "text-red-400"}`}
+                style={{
+                  fontSize: 96,
+                  fontFamily: "var(--font-nunito)",
+                  textShadow: popup.value > 0
+                    ? "0 0 32px rgba(74,222,128,0.9)"
+                    : "0 0 32px rgba(248,113,113,0.9)",
+                }}
+              >
+                {popup.value > 0 ? "+1" : "-1"}
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {/* ── Floating Exit button (shown during any active game state) ─────── */}
         {cameraReady && gameState !== "idle" && (
           <button
             onClick={exitToStart}
-            className="absolute top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/40 hover:bg-black/70 text-white/70 hover:text-white text-xs font-medium transition-all backdrop-blur-sm border border-white/10"
+            className="absolute top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/40 hover:bg-black/70 text-white hover:text-white text-sm font-medium transition-all backdrop-blur-sm border border-white/20"
           >
             <LogOut className="w-3.5 h-3.5" />
             Exit
@@ -450,11 +488,11 @@ export function FruitFrenzy() {
         {/* ── Start screen ─────────────────────────────────────────────────── */}
         {!cameraReady && !loadingModel && (
           <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-950 via-slate-900 to-emerald-950" />
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-950 via-purple-950 to-sky-950" />
 
-            {/* Floating fruit bg */}
+            {/* Floating Easter bg */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {["🍎", "🍊", "🍋", "🍇", "🍓", "🍌", "🍉", "🍑", "🥭", "🍍"].map((emoji, i) => (
+              {["🥚", "🐣", "🐰", "🌷", "🌸", "🐇", "🦋", "🐥", "🌼", "🪺"].map((emoji, i) => (
                 <div
                   key={i}
                   className="absolute text-4xl animate-bounce"
@@ -472,32 +510,19 @@ export function FruitFrenzy() {
             </div>
 
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
-              <div className="text-7xl">🍎🍊🍋</div>
-              <div>
-                <h1 className="text-5xl font-black text-white mb-2 tracking-tight">
-                  Fruit <span className="text-emerald-400">Frenzy</span>
+              <div className="text-7xl">🥚🐣🌷</div>
+              <div className="text-center">
+                <h1 className="text-7xl text-white mb-3 tracking-tight text-center" style={{ fontFamily: "var(--font-erica-one)" }}>
+                  Easter <span className="text-pink-400">Frenzy</span>
                 </h1>
-                <p className="text-slate-300 text-base max-w-sm">
-                  Open your mouth to catch falling fruits before time runs out — 5 stages of fruity chaos!
+                <p className="text-white text-lg max-w-sm mx-auto text-center">
+                  Open your mouth to catch falling Easter eggs — but watch out for sneaky fruits!
                 </p>
-              </div>
-
-              {/* Stage pills */}
-              <div className="flex gap-2 flex-wrap justify-center max-w-sm">
-                {STAGES.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 bg-white/5 text-white/70"
-                  >
-                    <span>{s.emoji}</span>
-                    <span>{s.name}</span>
-                  </div>
-                ))}
               </div>
 
               <button
                 onClick={initCamera}
-                className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-bold text-lg transition-all shadow-lg shadow-emerald-900/50 hover:scale-105"
+                className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-pink-500 hover:bg-pink-400 active:scale-95 text-white font-bold text-lg transition-all shadow-lg shadow-pink-900/50 hover:scale-105"
               >
                 <Camera className="w-5 h-5" />
                 Start Camera
@@ -509,29 +534,29 @@ export function FruitFrenzy() {
         {/* ── Loading ───────────────────────────────────────────────────────── */}
         {loadingModel && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950">
-            <div className="w-12 h-12 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-            <p className="text-slate-400 text-sm">Loading face model…</p>
+            <div className="w-12 h-12 rounded-full border-2 border-pink-500 border-t-transparent animate-spin" />
+            <p className="text-white text-base">Loading face model…</p>
           </div>
         )}
 
         {/* ── Ready ─────────────────────────────────────────────────────────── */}
         {cameraReady && gameState === "idle" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/60">
-            <div className="text-5xl">😮🍓🍊</div>
+            <div className="text-5xl">😮🥚🐣</div>
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-white mb-1">Ready?</h2>
-              <p className="text-slate-300 text-sm">Open your mouth to catch falling fruits!</p>
-              <p className="text-slate-400 text-xs mt-1">5 stages · Don't let the clock run out</p>
+              <h2 className="text-5xl text-white mb-2" style={{ fontFamily: "var(--font-erica-one)" }}>Ready?</h2>
+              <p className="text-white text-lg">Catch the eggs — avoid the fruit!</p>
+              <p className="text-white/70 text-base mt-1">5 stages · Don't let the clock run out</p>
             </div>
             <button
               onClick={startGame}
-              className="px-8 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg transition-colors"
+              className="px-8 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-lg transition-colors"
             >
               Play!
             </button>
             <button
               onClick={exitGame}
-              className="flex items-center gap-1.5 text-slate-500 hover:text-slate-300 text-sm transition-colors"
+              className="flex items-center gap-1.5 text-white/60 hover:text-white text-base transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" />
               Exit game
@@ -543,12 +568,12 @@ export function FruitFrenzy() {
         {gameState === "countdown" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60 pointer-events-none">
             <div className="text-center">
-              <p className="text-white/70 text-sm font-bold uppercase tracking-widest mb-1">
+              <p className="text-white text-base font-bold uppercase tracking-widest mb-1">
                 Stage {currentStage + 1} — {stage.name}
               </p>
-              <p className="text-white/40 text-xs">{stage.tagline}</p>
-              <p className="text-white/40 text-xs mt-1">
-                Catch {stage.target} fruits in {stage.timeLimit}s
+              <p className="text-white/70 text-base">{stage.tagline}</p>
+              <p className="text-white/60 text-sm mt-1">
+                Catch {stage.target} eggs in {stage.timeLimit}s
               </p>
             </div>
             <span
@@ -566,16 +591,16 @@ export function FruitFrenzy() {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/75">
             <div className="text-6xl animate-bounce">{stage.emoji}</div>
             <div className="text-center">
-              <p className="text-emerald-400 text-sm font-bold uppercase tracking-widest mb-1">Stage Complete!</p>
-              <h2 className="text-3xl font-black text-white mb-1">{stage.name}</h2>
-              <p className="text-slate-300 text-sm">You caught all {stage.target} fruits!</p>
+              <p className="text-pink-400 text-sm font-bold uppercase tracking-widest mb-1">Stage Complete!</p>
+              <h2 className="text-4xl font-bold text-white mb-2">{stage.name}</h2>
+              <p className="text-white text-lg">You caught all {stage.target} eggs!</p>
             </div>
             <div className="flex gap-2">
               {STAGES.map((_, i) => (
                 <div
                   key={i}
                   className={`w-3 h-3 rounded-full transition-all ${
-                    completedStages[i] ? "bg-emerald-400 scale-110" : "bg-white/20"
+                    completedStages[i] ? "bg-pink-400 scale-110" : "bg-white/20"
                   }`}
                 />
               ))}
@@ -583,14 +608,14 @@ export function FruitFrenzy() {
             <div className="flex gap-3">
               <button
                 onClick={() => startStage(currentStage + 1)}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg transition-colors"
+                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-lg transition-colors"
               >
                 Next Stage
                 <ChevronRight className="w-5 h-5" />
               </button>
               <button
                 onClick={exitToStart}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-colors text-sm"
+                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-colors text-base"
               >
                 <LogOut className="w-4 h-4" />
                 Exit
@@ -605,8 +630,8 @@ export function FruitFrenzy() {
             <div className="text-6xl">😬</div>
             <div className="text-center">
               <p className="text-red-400 text-sm font-bold uppercase tracking-widest mb-1">Time's Up!</p>
-              <h2 className="text-3xl font-black text-white mb-1">{stage.name}</h2>
-              <p className="text-slate-300 text-sm">
+              <h2 className="text-4xl font-bold text-white mb-2">{stage.name}</h2>
+              <p className="text-white text-lg">
                 Got {stageFruits} of {stage.target} —{" "}
                 {stage.target - stageFruits === 1
                   ? "so close!"
@@ -619,7 +644,7 @@ export function FruitFrenzy() {
                   key={i}
                   className={`w-3 h-3 rounded-full transition-all ${
                     completedStages[i]
-                      ? "bg-emerald-400"
+                      ? "bg-pink-400"
                       : i === currentStage
                       ? "bg-red-400"
                       : "bg-white/20"
@@ -630,14 +655,14 @@ export function FruitFrenzy() {
             <div className="flex gap-3">
               <button
                 onClick={() => startStage(currentStage)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold transition-colors"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
                 Try Again
               </button>
               <button
                 onClick={startGame}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-colors text-sm"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-colors text-base"
               >
                 <RefreshCw className="w-4 h-4" />
                 Restart
@@ -649,21 +674,21 @@ export function FruitFrenzy() {
         {/* ── Victory ───────────────────────────────────────────────────────── */}
         {gameState === "victory" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80">
-            <div className="text-6xl">🏆🎉🥭</div>
+            <div className="text-6xl">🏆🎉🥚</div>
             <div className="text-center">
-              <p className="text-yellow-400 text-sm font-bold uppercase tracking-widest mb-1">You Did It!</p>
-              <h2 className="text-4xl font-black text-white mb-2">All Stages Complete!</h2>
-              <p className="text-5xl font-black text-emerald-400 mb-1">{totalScore}</p>
-              <p className="text-slate-300 text-sm">Total fruits devoured</p>
+              <p className="text-yellow-400 text-sm font-bold uppercase tracking-widest mb-1">Happy Easter!</p>
+              <h2 className="text-4xl font-bold text-white mb-2">All Stages Complete!</h2>
+              <p className="text-6xl font-bold text-pink-400 mb-1">{totalScore}</p>
+              <p className="text-white text-lg">Total eggs collected</p>
             </div>
             <div className="flex gap-2">
               {STAGES.map((_, i) => (
-                <div key={i} className="w-3 h-3 rounded-full bg-emerald-400 scale-110" />
+                <div key={i} className="w-3 h-3 rounded-full bg-pink-400 scale-110" />
               ))}
             </div>
             <button
               onClick={startGame}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Play Again
@@ -675,7 +700,7 @@ export function FruitFrenzy() {
       {/* Bottom status bar */}
       {cameraReady && gameState !== "playing" && gameState !== "countdown" && (
         <div className="shrink-0 flex items-center justify-center gap-2 py-2 bg-slate-900 border-t border-slate-800">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
           <span className="text-xs text-slate-500">Camera active · Face data stays local</span>
         </div>
       )}

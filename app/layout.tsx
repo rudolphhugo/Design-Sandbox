@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, DM_Sans } from "next/font/google";
+import { Geist, Geist_Mono, DM_Sans, Erica_One, Nunito } from "next/font/google";
 import "./globals.css";
 import { SandboxShell } from "@/components/sandbox/SandboxShell";
 
@@ -19,6 +19,18 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
+const ericaOne = Erica_One({
+  variable: "--font-erica-one",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const nunito = Nunito({
+  variable: "--font-nunito",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Design Sandbox",
   description: "Component design playground with shadcn/ui",
@@ -32,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${dmSans.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${dmSans.variable} ${ericaOne.variable} ${nunito.variable} antialiased`}
       >
         <SandboxShell>{children}</SandboxShell>
       </body>

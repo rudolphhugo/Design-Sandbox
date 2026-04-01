@@ -85,7 +85,7 @@ import { FruitFrenzy } from "@/components/showcase/FruitFrenzy";
 export const games: RegistryItem[] = [
   {
     slug: "fruit-frenzy",
-    name: "Fruit Frenzy",
+    name: "Easter Frenzy",
     component: FruitFrenzy,
     showcase: true,
   },
