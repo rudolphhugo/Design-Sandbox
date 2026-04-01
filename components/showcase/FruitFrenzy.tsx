@@ -526,30 +526,24 @@ export function FruitFrenzy() {
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
               <div className="text-7xl">🥚🐣🌷</div>
               <div>
-                <h1 className="text-5xl font-black text-white mb-2 tracking-tight">
+                <h1
+                  className="text-6xl text-white mb-2 tracking-tight"
+                  style={{ fontFamily: "var(--font-erica-one)" }}
+                >
                   Easter <span className="text-pink-400">Frenzy</span>
                 </h1>
-                <p className="text-slate-300 text-base max-w-sm">
+                <p
+                  className="text-slate-300 text-base max-w-sm"
+                  style={{ fontFamily: "var(--font-nunito)" }}
+                >
                   Open your mouth to catch falling Easter eggs — but watch out for sneaky fruits!
                 </p>
               </div>
 
-              {/* Stage pills */}
-              <div className="flex gap-2 flex-wrap justify-center max-w-sm">
-                {STAGES.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 bg-white/5 text-white/70"
-                  >
-                    <span>{s.emoji}</span>
-                    <span>{s.name}</span>
-                  </div>
-                ))}
-              </div>
-
               <button
                 onClick={initCamera}
-                className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-bold text-lg transition-all shadow-lg shadow-emerald-900/50 hover:scale-105"
+                className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-pink-500 hover:bg-pink-400 active:scale-95 text-white font-bold text-lg transition-all shadow-lg shadow-pink-900/50 hover:scale-105"
+                style={{ fontFamily: "var(--font-nunito)" }}
               >
                 <Camera className="w-5 h-5" />
                 Start Camera
@@ -561,7 +555,7 @@ export function FruitFrenzy() {
         {/* ── Loading ───────────────────────────────────────────────────────── */}
         {loadingModel && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-slate-950">
-            <div className="w-12 h-12 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+            <div className="w-12 h-12 rounded-full border-2 border-pink-500 border-t-transparent animate-spin" />
             <p className="text-slate-400 text-sm">Loading face model…</p>
           </div>
         )}
@@ -577,7 +571,7 @@ export function FruitFrenzy() {
             </div>
             <button
               onClick={startGame}
-              className="px-8 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg transition-colors"
+              className="px-8 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-lg transition-colors"
             >
               Play!
             </button>
@@ -600,7 +594,7 @@ export function FruitFrenzy() {
               </p>
               <p className="text-white/40 text-xs">{stage.tagline}</p>
               <p className="text-white/40 text-xs mt-1">
-                Catch {stage.target} fruits in {stage.timeLimit}s
+                Catch {stage.target} eggs in {stage.timeLimit}s
               </p>
             </div>
             <span
@@ -618,16 +612,16 @@ export function FruitFrenzy() {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/75">
             <div className="text-6xl animate-bounce">{stage.emoji}</div>
             <div className="text-center">
-              <p className="text-emerald-400 text-sm font-bold uppercase tracking-widest mb-1">Stage Complete!</p>
-              <h2 className="text-3xl font-black text-white mb-1">{stage.name}</h2>
-              <p className="text-slate-300 text-sm">You caught all {stage.target} fruits!</p>
+              <p className="text-pink-400 text-sm font-bold uppercase tracking-widest mb-1" style={{ fontFamily: "var(--font-nunito)" }}>Stage Complete!</p>
+              <h2 className="text-3xl text-white mb-1" style={{ fontFamily: "var(--font-erica-one)" }}>{stage.name}</h2>
+              <p className="text-slate-300 text-sm" style={{ fontFamily: "var(--font-nunito)" }}>You caught all {stage.target} eggs!</p>
             </div>
             <div className="flex gap-2">
               {STAGES.map((_, i) => (
                 <div
                   key={i}
                   className={`w-3 h-3 rounded-full transition-all ${
-                    completedStages[i] ? "bg-emerald-400 scale-110" : "bg-white/20"
+                    completedStages[i] ? "bg-pink-400 scale-110" : "bg-white/20"
                   }`}
                 />
               ))}
@@ -635,7 +629,7 @@ export function FruitFrenzy() {
             <div className="flex gap-3">
               <button
                 onClick={() => startStage(currentStage + 1)}
-                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg transition-colors"
+                className="flex items-center gap-2 px-8 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold text-lg transition-colors"
               >
                 Next Stage
                 <ChevronRight className="w-5 h-5" />
@@ -671,7 +665,7 @@ export function FruitFrenzy() {
                   key={i}
                   className={`w-3 h-3 rounded-full transition-all ${
                     completedStages[i]
-                      ? "bg-emerald-400"
+                      ? "bg-pink-400"
                       : i === currentStage
                       ? "bg-red-400"
                       : "bg-white/20"
@@ -682,7 +676,7 @@ export function FruitFrenzy() {
             <div className="flex gap-3">
               <button
                 onClick={() => startStage(currentStage)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold transition-colors"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
                 Try Again
@@ -710,12 +704,12 @@ export function FruitFrenzy() {
             </div>
             <div className="flex gap-2">
               {STAGES.map((_, i) => (
-                <div key={i} className="w-3 h-3 rounded-full bg-emerald-400 scale-110" />
+                <div key={i} className="w-3 h-3 rounded-full bg-pink-400 scale-110" />
               ))}
             </div>
             <button
               onClick={startGame}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-pink-500 hover:bg-pink-400 text-white font-bold transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Play Again
@@ -727,7 +721,7 @@ export function FruitFrenzy() {
       {/* Bottom status bar */}
       {cameraReady && gameState !== "playing" && gameState !== "countdown" && (
         <div className="shrink-0 flex items-center justify-center gap-2 py-2 bg-slate-900 border-t border-slate-800">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
           <span className="text-xs text-slate-500">Camera active · Face data stays local</span>
         </div>
       )}
