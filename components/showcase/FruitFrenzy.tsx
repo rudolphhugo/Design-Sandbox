@@ -483,7 +483,7 @@ export function FruitFrenzy() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="h-[calc(100vh-6rem)] flex flex-col bg-slate-950 overflow-hidden select-none">
+    <div className="h-[calc(100vh-6rem)] flex flex-col bg-slate-950 overflow-hidden select-none" style={{ fontFamily: "var(--font-nunito)" }}>
       <div className="relative flex-1 min-h-0 flex items-center justify-center">
         <video ref={videoRef} className="absolute opacity-0 pointer-events-none" muted playsInline />
         <canvas ref={canvasRef} className="h-full w-full object-contain" />
@@ -526,16 +526,10 @@ export function FruitFrenzy() {
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
               <div className="text-7xl">🥚🐣🌷</div>
               <div>
-                <h1
-                  className="text-6xl text-white mb-2 tracking-tight"
-                  style={{ fontFamily: "var(--font-erica-one)" }}
-                >
+                <h1 className="text-6xl text-white mb-2 tracking-tight" style={{ fontFamily: "var(--font-erica-one)" }}>
                   Easter <span className="text-pink-400">Frenzy</span>
                 </h1>
-                <p
-                  className="text-slate-300 text-base max-w-sm"
-                  style={{ fontFamily: "var(--font-nunito)" }}
-                >
+                <p className="text-slate-300 text-base max-w-sm">
                   Open your mouth to catch falling Easter eggs — but watch out for sneaky fruits!
                 </p>
               </div>
@@ -543,7 +537,6 @@ export function FruitFrenzy() {
               <button
                 onClick={initCamera}
                 className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-pink-500 hover:bg-pink-400 active:scale-95 text-white font-bold text-lg transition-all shadow-lg shadow-pink-900/50 hover:scale-105"
-                style={{ fontFamily: "var(--font-nunito)" }}
               >
                 <Camera className="w-5 h-5" />
                 Start Camera
@@ -565,7 +558,7 @@ export function FruitFrenzy() {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/60">
             <div className="text-5xl">😮🥚🐣</div>
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-white mb-1">Ready?</h2>
+              <h2 className="text-2xl text-white mb-1" style={{ fontFamily: "var(--font-erica-one)" }}>Ready?</h2>
               <p className="text-slate-300 text-sm">Catch the eggs — avoid the fruit!</p>
               <p className="text-slate-400 text-xs mt-1">5 stages · Don't let the clock run out</p>
             </div>
@@ -589,7 +582,7 @@ export function FruitFrenzy() {
         {gameState === "countdown" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/60 pointer-events-none">
             <div className="text-center">
-              <p className="text-white/70 text-sm font-bold uppercase tracking-widest mb-1">
+              <p className="text-white/70 text-sm uppercase tracking-widest mb-1" style={{ fontFamily: "var(--font-erica-one)" }}>
                 Stage {currentStage + 1} — {stage.name}
               </p>
               <p className="text-white/40 text-xs">{stage.tagline}</p>
@@ -612,9 +605,9 @@ export function FruitFrenzy() {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/75">
             <div className="text-6xl animate-bounce">{stage.emoji}</div>
             <div className="text-center">
-              <p className="text-pink-400 text-sm font-bold uppercase tracking-widest mb-1" style={{ fontFamily: "var(--font-nunito)" }}>Stage Complete!</p>
+              <p className="text-pink-400 text-sm font-bold uppercase tracking-widest mb-1">Stage Complete!</p>
               <h2 className="text-3xl text-white mb-1" style={{ fontFamily: "var(--font-erica-one)" }}>{stage.name}</h2>
-              <p className="text-slate-300 text-sm" style={{ fontFamily: "var(--font-nunito)" }}>You caught all {stage.target} eggs!</p>
+              <p className="text-slate-300 text-sm">You caught all {stage.target} eggs!</p>
             </div>
             <div className="flex gap-2">
               {STAGES.map((_, i) => (
@@ -651,7 +644,7 @@ export function FruitFrenzy() {
             <div className="text-6xl">😬</div>
             <div className="text-center">
               <p className="text-red-400 text-sm font-bold uppercase tracking-widest mb-1">Time's Up!</p>
-              <h2 className="text-3xl font-black text-white mb-1">{stage.name}</h2>
+              <h2 className="text-3xl text-white mb-1" style={{ fontFamily: "var(--font-erica-one)" }}>{stage.name}</h2>
               <p className="text-slate-300 text-sm">
                 Got {stageFruits} of {stage.target} —{" "}
                 {stage.target - stageFruits === 1
@@ -698,8 +691,8 @@ export function FruitFrenzy() {
             <div className="text-6xl">🏆🎉🥚</div>
             <div className="text-center">
               <p className="text-yellow-400 text-sm font-bold uppercase tracking-widest mb-1">Happy Easter!</p>
-              <h2 className="text-4xl font-black text-white mb-2">All Stages Complete!</h2>
-              <p className="text-5xl font-black text-pink-400 mb-1">{totalScore}</p>
+              <h2 className="text-4xl text-white mb-2" style={{ fontFamily: "var(--font-erica-one)" }}>All Stages Complete!</h2>
+              <p className="text-5xl text-pink-400 mb-1" style={{ fontFamily: "var(--font-erica-one)" }}>{totalScore}</p>
               <p className="text-slate-300 text-sm">Total eggs collected</p>
             </div>
             <div className="flex gap-2">
