@@ -15,8 +15,10 @@ import {
     Wrench,
     BookOpen,
     Check,
+    Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -39,11 +41,14 @@ import {
     saveProject,
     updateCheckResult,
     updateCriteriaComment,
+    updateSiteWideFlag,
     getPhaseProgress,
     getChecksForTarget,
+    getProjectChecksForTarget,
+    updateProjectCheckResult,
 } from "@/lib/audit-storage";
 import { PHASES } from "@/lib/audit-checks";
-import type { AuditProject, CheckStatus, Severity, Phase, Role } from "@/lib/audit-types";
+import type { AuditProject, CheckStatus, Severity, Phase, Role, UserGroup } from "@/lib/audit-types";
 
 interface Props {
     projectId: string;
@@ -68,6 +73,15 @@ const roleConfig: Record<Role, { label: string; className: string }> = {
 
 const ALL_ROLES: Role[] = ["developer", "designer", "content", "qa"];
 
+const userGroupConfig: Record<UserGroup, { label: string; className: string }> = {
+    blind:       { label: "Blind",       className: "bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30" },
+    "low-vision":{ label: "Low vision",  className: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30" },
+    deaf:        { label: "Deaf / HoH",  className: "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/30" },
+    motor:       { label: "Motor",       className: "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/30" },
+    cognitive:   { label: "Cognitive",   className: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30" },
+    seizure:     { label: "Seizure",     className: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/30" },
+};
+
 export function CriteriaWorkspace({ projectId }: Props) {
     const router = useRouter();
     const [activePhase, setActivePhase] = useState<Phase>("automated");
@@ -86,9 +100,11 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
     // Use a map for the drafts so we can hold notes for multiple pages simultaneously
     const [notesDrafts, setNotesDrafts] = useState<Record<string, string>>({});
+    const [findingDrafts, setFindingDrafts] = useState<Record<string, string>>({});
     const [generalCommentDraft, setGeneralCommentDraft] = useState<string>("");
 
     const notesDebounceRefs = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+    const findingDebounceRefs = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
     const generalCommentDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const projectRef = useRef(project);
     projectRef.current = project;
@@ -103,12 +119,25 @@ export function CriteriaWorkspace({ projectId }: Props) {
     // Initialize drafts when selecting a new check
     useEffect(() => {
         if (!project || !selectedCheckId) return;
+        const allChecks = [...getChecksForTarget(project.conformanceTarget), ...getProjectChecksForTarget(project.conformanceTarget)];
+        const check = allChecks.find(c => c.id === selectedCheckId);
         const newDrafts: Record<string, string> = {};
-        project.pages.forEach((page) => {
-            const result = page.checks.find(c => c.checkId === selectedCheckId);
-            newDrafts[page.id] = result?.notes ?? "";
-        });
+        const newFindingDrafts: Record<string, string> = {};
+        if (check?.scope === "project") {
+            const result = (project.projectChecks ?? []).find(c => c.checkId === selectedCheckId);
+            newDrafts["__project__"] = result?.notes ?? "";
+        } else {
+            project.pages.forEach((page) => {
+                const result = page.checks.find(c => c.checkId === selectedCheckId);
+                newDrafts[page.id] = result?.notes ?? "";
+                const findingFields = ["location", "issue", "applicableCode", "recommendation", "screenshot"] as const;
+                findingFields.forEach((field) => {
+                    newFindingDrafts[`${page.id}:${field}`] = result?.[field] ?? "";
+                });
+            });
+        }
         setNotesDrafts(newDrafts);
+        setFindingDrafts(newFindingDrafts);
         setGeneralCommentDraft(project.criteriaComments?.[selectedCheckId] ?? "");
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCheckId]);
@@ -122,7 +151,8 @@ export function CriteriaWorkspace({ projectId }: Props) {
     // Update selected check when phase changes
     useEffect(() => {
         if (!project) return;
-        const nextId = getChecksForTarget(project.conformanceTarget).find((c) => c.phase === activePhase)?.id ?? null;
+        const allChecks = [...getChecksForTarget(project.conformanceTarget), ...getProjectChecksForTarget(project.conformanceTarget)];
+        const nextId = allChecks.find((c) => c.phase === activePhase)?.id ?? null;
         setSelectedCheckId(nextId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activePhase]);
@@ -177,6 +207,33 @@ export function CriteriaWorkspace({ projectId }: Props) {
         [triggerSaved]
     );
 
+    const handleFindingFieldChange = useCallback(
+        (pageId: string, checkId: string, field: string, value: string) => {
+            const key = `${pageId}:${field}`;
+            setFindingDrafts(prev => ({ ...prev, [key]: value }));
+
+            if (findingDebounceRefs.current[key]) clearTimeout(findingDebounceRefs.current[key]);
+
+            findingDebounceRefs.current[key] = setTimeout(() => {
+                delete findingDebounceRefs.current[key];
+                const currentProject = projectRef.current;
+                if (!currentProject) return;
+
+                const currentPage = currentProject.pages.find(p => p.id === pageId);
+                if (!currentPage) return;
+
+                const existing = currentPage.checks.find((c) => c.checkId === checkId);
+                if (!existing) return;
+
+                const updated = updateCheckResult(currentProject, pageId, { ...existing, [field]: value });
+                saveProject(updated);
+                setProject(updated);
+                triggerSaved();
+            }, 600);
+        },
+        [triggerSaved]
+    );
+
     const handleGeneralCommentChange = useCallback(
         (checkId: string, comment: string) => {
             setGeneralCommentDraft(comment);
@@ -195,6 +252,82 @@ export function CriteriaWorkspace({ projectId }: Props) {
         [triggerSaved]
     );
 
+    const toggleSiteWide = useCallback(
+        (pageId: string, checkId: string) => {
+            setProject((currentProject) => {
+                if (!currentProject) return currentProject;
+                const page = currentProject.pages.find((p) => p.id === pageId);
+                const existing = page?.checks.find((c) => c.checkId === checkId);
+                if (!existing) return currentProject;
+                const updated = updateCheckResult(currentProject, pageId, {
+                    ...existing,
+                    siteWide: !existing.siteWide,
+                });
+                saveProject(updated);
+                return updated;
+            });
+            triggerSaved();
+        },
+        [triggerSaved]
+    );
+
+    const toggleCriteriaSiteWide = useCallback(
+        (checkId: string, currentValue: boolean) => {
+            setProject((currentProject) => {
+                if (!currentProject) return currentProject;
+                const newValue = !currentValue;
+                let updated = updateSiteWideFlag(currentProject, checkId, newValue);
+                // When enabling, auto-fail all pages for this criterion
+                if (newValue) {
+                    updated.pages.forEach((page) => {
+                        const existing = page.checks.find((c) => c.checkId === checkId);
+                        if (existing) {
+                            updated = updateCheckResult(updated, page.id, { ...existing, status: "fail" });
+                        }
+                    });
+                }
+                saveProject(updated);
+                return updated;
+            });
+            triggerSaved();
+        },
+        [triggerSaved]
+    );
+
+    const updateProjectCheck = useCallback(
+        (checkId: string, status: CheckStatus) => {
+            setProject((currentProject) => {
+                if (!currentProject) return currentProject;
+                const existing = (currentProject.projectChecks ?? []).find(c => c.checkId === checkId);
+                if (!existing) return currentProject;
+                const updated = updateProjectCheckResult(currentProject, { ...existing, status });
+                saveProject(updated);
+                return updated;
+            });
+            triggerSaved();
+        },
+        [triggerSaved]
+    );
+
+    const handleProjectNotesChange = useCallback(
+        (checkId: string, notes: string) => {
+            setNotesDrafts(prev => ({ ...prev, ["__project__"]: notes }));
+            if (notesDebounceRefs.current["__project__"]) clearTimeout(notesDebounceRefs.current["__project__"]);
+            notesDebounceRefs.current["__project__"] = setTimeout(() => {
+                delete notesDebounceRefs.current["__project__"];
+                const currentProject = projectRef.current;
+                if (!currentProject) return;
+                const existing = (currentProject.projectChecks ?? []).find(c => c.checkId === checkId);
+                if (!existing) return;
+                const updated = updateProjectCheckResult(currentProject, { ...existing, notes });
+                saveProject(updated);
+                setProject(updated);
+                triggerSaved();
+            }, 600);
+        },
+        [triggerSaved]
+    );
+
     if (!project) return null;
 
     function handleSwitchToPage() {
@@ -206,7 +339,7 @@ export function CriteriaWorkspace({ projectId }: Props) {
         }
     }
 
-    const projectChecks = getChecksForTarget(project.conformanceTarget);
+    const projectChecks = [...getChecksForTarget(project.conformanceTarget), ...getProjectChecksForTarget(project.conformanceTarget)];
     const filterByRole = (checks: typeof projectChecks) =>
         activeRoles.size === 0 ? checks : checks.filter(c => c.roles?.some(r => activeRoles.has(r)));
 
@@ -215,12 +348,13 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
     // Criteria-based progress: total = unique criteria, done = criteria where all pages are non-pending
     const totalChecks = projectChecks.length;
-    const completedChecks = projectChecks.filter((check) =>
-        project.pages.length > 0 &&
-        project.pages.every(
-            (page) => page.checks.find((r) => r.checkId === check.id)?.status !== "pending"
-        )
-    ).length;
+    const completedChecks = projectChecks.filter((check) => {
+        if (check.scope === "project") {
+            return (project.projectChecks ?? []).find(r => r.checkId === check.id)?.status !== "pending";
+        }
+        return project.pages.length > 0 &&
+            project.pages.every((page) => page.checks.find((r) => r.checkId === check.id)?.status !== "pending");
+    }).length;
     const pct = totalChecks === 0 ? 0 : Math.round((completedChecks / totalChecks) * 100);
 
     return (
@@ -311,13 +445,16 @@ export function CriteriaWorkspace({ projectId }: Props) {
 
                     {PHASES.map((phase) => {
                         // Count criteria done = at least one page has a non-pending result
-                        const phaseCheckIds = projectChecks.filter(c => c.phase === phase.id).map(c => c.id);
-                        const pt = phaseCheckIds.length;
-                        const pd = phaseCheckIds.filter(checkId =>
-                            project.pages.some(page =>
-                                page.checks.find(r => r.checkId === checkId)?.status !== "pending"
-                            )
-                        ).length;
+                        const phaseCheckList = projectChecks.filter(c => c.phase === phase.id);
+                        const pt = phaseCheckList.length;
+                        const pd = phaseCheckList.filter(check => {
+                            if (check.scope === "project") {
+                                return (project.projectChecks ?? []).find(r => r.checkId === check.id)?.status !== "pending";
+                            }
+                            return project.pages.some(page =>
+                                page.checks.find(r => r.checkId === check.id)?.status !== "pending"
+                            );
+                        }).length;
 
                         const isActive = activePhase === phase.id;
                         const isCollapsed = collapsedPhases.has(phase.id);
@@ -362,14 +499,17 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                             const isSelected = selectedCheckId === check.id;
 
                                             // Priority: fail > partial > pending > pass > na
-                                            // Only consider pages that actually have this check (exclude missing → undefined)
                                             const pri = { fail: 0, partial: 1, pending: 2, pass: 3, na: 4 } as const;
-                                            const pageStatuses = project.pages
-                                                .map(p => p.checks.find(r => r.checkId === check.id)?.status)
-                                                .filter((s): s is CheckStatus => s !== undefined);
-                                            const dominant: CheckStatus = pageStatuses.length === 0
-                                                ? "pending"
-                                                : pageStatuses.reduce((a, b) => (pri[a] ?? 2) <= (pri[b] ?? 2) ? a : b);
+                                            const dominant: CheckStatus = check.scope === "project"
+                                                ? ((project.projectChecks ?? []).find(r => r.checkId === check.id)?.status ?? "pending")
+                                                : (() => {
+                                                    const pageStatuses = project.pages
+                                                        .map(p => p.checks.find(r => r.checkId === check.id)?.status)
+                                                        .filter((s): s is CheckStatus => s !== undefined);
+                                                    return pageStatuses.length === 0
+                                                        ? "pending"
+                                                        : pageStatuses.reduce((a, b) => (pri[a] ?? 2) <= (pri[b] ?? 2) ? a : b);
+                                                })();
 
                                             const icon = {
                                                 fail:    <XCircle className="w-4 h-4 text-red-500" />,
@@ -419,7 +559,9 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                     </span>
                                     <h2 className="text-3xl font-semibold leading-snug mt-1">{selectedCheck.title}</h2>
                                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                        <Badge variant="outline" className="text-xs">WCAG {selectedCheck.wcag}</Badge>
+                                        <Badge variant="outline" className="text-xs">
+                                            {selectedCheck.wcag.startsWith("EN") ? selectedCheck.wcag : `WCAG ${selectedCheck.wcag}`}
+                                        </Badge>
                                         <Badge variant="outline" className="text-xs">Level {selectedCheck.level}</Badge>
                                         {selectedCheck.roles && selectedCheck.roles.length > 0 && (
                                             <>
@@ -433,6 +575,17 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                         )}
                                     </div>
                                 </div>
+                                {selectedCheck.affectedUsers && selectedCheck.affectedUsers.length > 0 && (
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Users affected</span>
+                                        <div className="w-px h-3 bg-border" />
+                                        {selectedCheck.affectedUsers.map(group => (
+                                            <span key={group} className={`px-2 py-0.5 rounded-full border text-[11px] font-medium ${userGroupConfig[group].className}`}>
+                                                {userGroupConfig[group].label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                                 <p className="text-base leading-relaxed text-muted-foreground">{selectedCheck.whyItMatters}</p>
                             </div>
 
@@ -481,144 +634,279 @@ export function CriteriaWorkspace({ projectId }: Props) {
                                         </div>
                                     )}
 
-                                    {/* Pages header */}
-                                    <div className="flex justify-between items-center border-b border-border/50 pb-2">
-                                        <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                                            Pages ({project.pages.length})
-                                        </div>
-                                        <div className="flex h-7">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-7 text-xs rounded-r-none border-r-0 gap-1.5"
-                                                onClick={() => {
-                                                    let updated = { ...project };
-                                                    updated.pages.forEach(p => {
-                                                        const existing = p.checks.find(c => c.checkId === selectedCheck.id);
-                                                        if (existing) {
-                                                            updated = updateCheckResult(updated, p.id, { ...existing, status: bulkStatus });
-                                                        }
-                                                    });
-                                                    saveProject(updated);
-                                                    setProject(updated);
-                                                    triggerSaved();
-                                                }}
-                                            >
-                                                {statusConfig[bulkStatus].icon}
-                                                {statusConfig[bulkStatus].label} All
-                                            </Button>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-7 w-7 rounded-l-none px-0"
-                                                    >
-                                                        <ChevronDown className="w-3 h-3" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="min-w-36">
-                                                    {(["pass", "fail", "partial", "na", "pending"] as CheckStatus[]).map(s => (
-                                                        <DropdownMenuItem
-                                                            key={s}
-                                                            onClick={() => setBulkStatus(s)}
-                                                            className="flex items-center gap-2 text-xs"
-                                                        >
-                                                            {statusConfig[s].icon}
-                                                            <span>{statusConfig[s].label}</span>
-                                                            {bulkStatus === s && <Check className="w-3 h-3 ml-auto" />}
-                                                        </DropdownMenuItem>
-                                                    ))}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    </div>
-
-                                    {/* General criteria comment */}
-                                    <div className="space-y-1.5">
-                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                                            General comment (applies to entire site)
-                                        </label>
-                                        <Textarea
-                                            placeholder="Overall observations about this criterion across the site..."
-                                            value={generalCommentDraft}
-                                            onChange={(e) => handleGeneralCommentChange(selectedCheck.id, e.target.value)}
-                                            className="text-xs min-h-[72px] resize-y bg-white dark:bg-background"
-                                        />
-                                    </div>
-
-                                    {/* Pages list */}
-                                    {project.pages.length === 0 ? (
-                                        <div className="text-center py-12 text-sm text-muted-foreground border border-dashed rounded-xl">
-                                            No pages added to this project yet.
-                                        </div>
-                                    ) : (
-                                        <div className="rounded-xl border border-border/50 overflow-hidden divide-y divide-border/50">
-                                            {project.pages.map((page) => {
-                                                const result = page.checks.find(c => c.checkId === selectedCheck.id);
-                                                if (!result) return null;
-                                                const draftNotes = notesDrafts[page.id] ?? result.notes;
-                                                return (
-                                                    <div key={page.id} className="bg-card px-4 py-3 space-y-2">
-                                                        {/* Row 1: icon + name/url + buttons */}
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="shrink-0">{statusConfig[result.status].icon}</div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="text-sm font-medium truncate">{page.name}</div>
-                                                                {page.url && (
-                                                                    <a href={page.url} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate block">
-                                                                        {page.url}
-                                                                    </a>
-                                                                )}
+                                    {selectedCheck.scope === "project" ? (
+                                        /* Site-wide: single result row, no pages */
+                                        (() => {
+                                            const result = (project.projectChecks ?? []).find(r => r.checkId === selectedCheck.id) ?? { checkId: selectedCheck.id, status: "pending" as CheckStatus, notes: "" };
+                                            const draftNotes = notesDrafts["__project__"] ?? result.notes;
+                                            return (
+                                                <div className="space-y-4">
+                                                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground border-b border-border/50 pb-2">
+                                                        Site-wide requirement
+                                                    </div>
+                                                    <div className="rounded-xl border border-border/50 overflow-hidden">
+                                                        <div className="bg-card px-4 py-3 space-y-2">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="shrink-0">{statusConfig[result.status].icon}</div>
+                                                                <div className="flex-1 min-w-0 text-sm text-muted-foreground">Applies to the entire site</div>
+                                                                <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
+                                                                    {(["pass", "fail", "partial", "na"] as CheckStatus[]).map((s) => (
+                                                                        <button
+                                                                            key={s}
+                                                                            onClick={() => updateProjectCheck(selectedCheck.id, s)}
+                                                                            className={`flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-medium transition-all ${
+                                                                                result.status === s
+                                                                                    ? s === "pass" ? "bg-green-500/20 border-green-500 text-green-800 dark:text-green-300"
+                                                                                    : s === "fail" ? "bg-red-500/20 border-red-500 text-red-800 dark:text-red-300"
+                                                                                    : s === "partial" ? "bg-amber-500/20 border-amber-500 text-amber-800 dark:text-amber-300"
+                                                                                    : "bg-zinc-500/20 border-zinc-400 text-zinc-700 dark:text-zinc-300"
+                                                                                    : "border-border hover:bg-accent/50 text-muted-foreground"
+                                                                            }`}
+                                                                        >
+                                                                            {statusConfig[s].icon}
+                                                                            {statusConfig[s].label}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
                                                             </div>
-                                                            <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
-                                                                {(["pass", "fail", "partial", "na"] as CheckStatus[]).map((s) => (
-                                                                    <button
-                                                                        key={s}
-                                                                        onClick={() => updateCheck(page.id, selectedCheck.id, s, result.severity)}
-                                                                        className={`flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-medium transition-all ${
-                                                                            result.status === s
-                                                                                ? s === "pass" ? "bg-green-500/20 border-green-500 text-green-800 dark:text-green-300"
-                                                                                : s === "fail" ? "bg-red-500/20 border-red-500 text-red-800 dark:text-red-300"
-                                                                                : s === "partial" ? "bg-amber-500/20 border-amber-500 text-amber-800 dark:text-amber-300"
-                                                                                : "bg-zinc-500/20 border-zinc-400 text-zinc-700 dark:text-zinc-300"
-                                                                                : "border-border hover:bg-accent/50 text-muted-foreground"
-                                                                        }`}
-                                                                    >
-                                                                        {statusConfig[s].icon}
-                                                                        {statusConfig[s].label}
-                                                                    </button>
-                                                                ))}
-                                                                {(result.status === "fail" || result.status === "partial") && (
-                                                                    <Select
-                                                                        value={result.severity ?? ""}
-                                                                        onValueChange={(v) => updateCheck(page.id, selectedCheck.id, result.status, v as Severity)}
-                                                                    >
-                                                                        <SelectTrigger className="h-7 text-xs w-28 bg-white dark:bg-background">
-                                                                            <SelectValue placeholder="Severity..." />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {severityOptions.map((s) => (
-                                                                                <SelectItem key={s} value={s} className="capitalize text-xs">{s}</SelectItem>
-                                                                            ))}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                )}
+                                                            <div className="pl-7">
+                                                                <Textarea
+                                                                    placeholder="Notes..."
+                                                                    value={draftNotes}
+                                                                    onChange={(e) => handleProjectNotesChange(selectedCheck.id, e.target.value)}
+                                                                    className="text-xs min-h-[60px] resize-y bg-white dark:bg-background"
+                                                                />
                                                             </div>
-                                                        </div>
-                                                        {/* Row 2: notes */}
-                                                        <div className="pl-7">
-                                                            <Textarea
-                                                                placeholder="Notes..."
-                                                                value={draftNotes}
-                                                                onChange={(e) => handleNotesChange(page.id, selectedCheck.id, e.target.value)}
-                                                                className="text-xs min-h-[60px] resize-y bg-white dark:bg-background"
-                                                            />
                                                         </div>
                                                     </div>
-                                                );
-                                            })}
-                                        </div>
+                                                </div>
+                                            );
+                                        })()
+                                    ) : (
+                                        /* Per-page checks */
+                                        (() => {
+                                            const isSiteWide = project.siteWideFlags?.[selectedCheck.id] ?? false;
+                                            return (
+                                                <>
+                                                    {/* Pages header */}
+                                                    <div className="flex justify-between items-center border-b border-border/50 pb-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                                                Pages ({project.pages.length})
+                                                            </div>
+                                                            <button
+                                                                onClick={() => toggleCriteriaSiteWide(selectedCheck.id, isSiteWide)}
+                                                                title={isSiteWide ? "Site-wide issue — click to disable" : "Mark as site-wide issue (disables per-page assessment)"}
+                                                                className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-medium transition-all ${
+                                                                    isSiteWide
+                                                                        ? "bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-300"
+                                                                        : "border-border text-muted-foreground hover:border-amber-400 hover:text-amber-600"
+                                                                }`}
+                                                            >
+                                                                <Globe className="w-3 h-3" />
+                                                                Site-wide issue
+                                                            </button>
+                                                        </div>
+                                                        {(() => {
+                                                            return (
+                                                            <div className="flex h-7">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className="h-7 text-xs rounded-r-none border-r-0 gap-1.5"
+                                                                    onClick={() => {
+                                                                        let updated = { ...project };
+                                                                        updated.pages.forEach(p => {
+                                                                            const existing = p.checks.find(c => c.checkId === selectedCheck.id);
+                                                                            if (existing) {
+                                                                                updated = updateCheckResult(updated, p.id, { ...existing, status: bulkStatus });
+                                                                            }
+                                                                        });
+                                                                        saveProject(updated);
+                                                                        setProject(updated);
+                                                                        triggerSaved();
+                                                                    }}
+                                                                >
+                                                                    {statusConfig[bulkStatus].icon}
+                                                                    {statusConfig[bulkStatus].label} All
+                                                                </Button>
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            className="h-7 w-7 rounded-l-none px-0"
+                                                                        >
+                                                                            <ChevronDown className="w-3 h-3" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end" className="min-w-36">
+                                                                        {(["pass", "fail", "partial", "na", "pending"] as CheckStatus[]).map(s => (
+                                                                            <DropdownMenuItem
+                                                                                key={s}
+                                                                                onClick={() => setBulkStatus(s)}
+                                                                                className="flex items-center gap-2 text-xs"
+                                                                            >
+                                                                                {statusConfig[s].icon}
+                                                                                <span>{statusConfig[s].label}</span>
+                                                                                {bulkStatus === s && <Check className="w-3 h-3 ml-auto" />}
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </div>
+                                                            );
+                                                        })()}
+                                                    </div>
+
+                                                    {/* General criteria comment */}
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                                            General comment (applies to entire site)
+                                                        </label>
+                                                        <Textarea
+                                                            placeholder="Overall observations about this criterion across the site..."
+                                                            value={generalCommentDraft}
+                                                            onChange={(e) => handleGeneralCommentChange(selectedCheck.id, e.target.value)}
+                                                            className="text-xs min-h-[72px] resize-y bg-white dark:bg-background"
+                                                        />
+                                                    </div>
+
+                                                    {/* Pages list */}
+                                                    {project.pages.length === 0 ? (
+                                                        <div className="text-center py-12 text-sm text-muted-foreground border border-dashed rounded-xl">
+                                                            No pages added to this project yet.
+                                                        </div>
+                                                    ) : (
+                                                        <div className={`rounded-xl border border-border/50 overflow-hidden divide-y divide-border/50 transition-opacity ${isSiteWide ? "opacity-40 pointer-events-none select-none" : ""}`}>
+                                                            {project.pages.map((page) => {
+                                                                const result = page.checks.find(c => c.checkId === selectedCheck.id);
+                                                                if (!result) return null;
+                                                                const draftNotes = notesDrafts[page.id] ?? result.notes;
+                                                                return (
+                                                                    <div key={page.id} className="bg-card px-4 py-3 space-y-2">
+                                                                        {/* Row 1: icon + name/url + buttons */}
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="shrink-0">{statusConfig[result.status].icon}</div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <div className="text-sm font-medium truncate">{page.name}</div>
+                                                                                {page.url && (
+                                                                                    <a href={page.url} target="_blank" rel="noreferrer" className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate block">
+                                                                                        {page.url}
+                                                                                    </a>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
+                                                                                {(["pass", "fail", "partial", "na"] as CheckStatus[]).map((s) => (
+                                                                                    <button
+                                                                                        key={s}
+                                                                                        onClick={() => updateCheck(page.id, selectedCheck.id, s, result.severity)}
+                                                                                        className={`flex items-center gap-1 px-2.5 py-1 rounded-md border text-xs font-medium transition-all ${
+                                                                                            result.status === s
+                                                                                                ? s === "pass" ? "bg-green-500/20 border-green-500 text-green-800 dark:text-green-300"
+                                                                                                : s === "fail" ? "bg-red-500/20 border-red-500 text-red-800 dark:text-red-300"
+                                                                                                : s === "partial" ? "bg-amber-500/20 border-amber-500 text-amber-800 dark:text-amber-300"
+                                                                                                : "bg-zinc-500/20 border-zinc-400 text-zinc-700 dark:text-zinc-300"
+                                                                                                : "border-border hover:bg-accent/50 text-muted-foreground"
+                                                                                        }`}
+                                                                                    >
+                                                                                        {statusConfig[s].icon}
+                                                                                        {statusConfig[s].label}
+                                                                                    </button>
+                                                                                ))}
+                                                                                {(result.status === "fail" || result.status === "partial") && (
+                                                                                    <Select
+                                                                                        value={result.severity ?? ""}
+                                                                                        onValueChange={(v) => updateCheck(page.id, selectedCheck.id, result.status, v as Severity)}
+                                                                                    >
+                                                                                        <SelectTrigger className="h-7 text-xs w-28 bg-white dark:bg-background">
+                                                                                            <SelectValue placeholder="Severity..." />
+                                                                                        </SelectTrigger>
+                                                                                        <SelectContent>
+                                                                                            {severityOptions.map((s) => (
+                                                                                                <SelectItem key={s} value={s} className="capitalize text-xs">{s}</SelectItem>
+                                                                                            ))}
+                                                                                        </SelectContent>
+                                                                                    </Select>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                        {/* Row 2: notes */}
+                                                                        <div className="pl-7">
+                                                                            <Textarea
+                                                                                placeholder="Notes..."
+                                                                                value={draftNotes}
+                                                                                onChange={(e) => handleNotesChange(page.id, selectedCheck.id, e.target.value)}
+                                                                                className="text-xs min-h-[60px] resize-y bg-white dark:bg-background"
+                                                                            />
+                                                                        </div>
+                                                                        {/* Finding details — shown for fail/partial */}
+                                                                        {(result.status === "fail" || result.status === "partial") && (
+                                                                            <div className="pl-7 space-y-3 pt-1">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Finding details</div>
+                                                                                    <div className="flex-1 h-px bg-border/50" />
+                                                                                </div>
+                                                                                <div className="space-y-2.5">
+                                                                                    <div className="space-y-1">
+                                                                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Location</label>
+                                                                                        <Input
+                                                                                            placeholder="e.g. Main navigation > Search button"
+                                                                                            value={findingDrafts[`${page.id}:location`] ?? result.location ?? ""}
+                                                                                            onChange={(e) => handleFindingFieldChange(page.id, selectedCheck.id, "location", e.target.value)}
+                                                                                            className="text-xs h-8 bg-white dark:bg-background"
+                                                                                        />
+                                                                                    </div>
+                                                                                    <div className="space-y-1">
+                                                                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Issue</label>
+                                                                                        <Textarea
+                                                                                            placeholder="Describe the specific issue found..."
+                                                                                            value={findingDrafts[`${page.id}:issue`] ?? result.issue ?? ""}
+                                                                                            onChange={(e) => handleFindingFieldChange(page.id, selectedCheck.id, "issue", e.target.value)}
+                                                                                            className="text-xs min-h-[52px] resize-y bg-white dark:bg-background"
+                                                                                            rows={2}
+                                                                                        />
+                                                                                    </div>
+                                                                                    <div className="space-y-1">
+                                                                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Applicable code</label>
+                                                                                        <Textarea
+                                                                                            placeholder="<button> missing aria-label"
+                                                                                            value={findingDrafts[`${page.id}:applicableCode`] ?? result.applicableCode ?? ""}
+                                                                                            onChange={(e) => handleFindingFieldChange(page.id, selectedCheck.id, "applicableCode", e.target.value)}
+                                                                                            className="text-xs min-h-[52px] resize-y bg-white dark:bg-background font-mono"
+                                                                                            rows={2}
+                                                                                        />
+                                                                                    </div>
+                                                                                    <div className="space-y-1">
+                                                                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recommendation</label>
+                                                                                        <Textarea
+                                                                                            placeholder="How to fix this issue..."
+                                                                                            value={findingDrafts[`${page.id}:recommendation`] ?? result.recommendation ?? ""}
+                                                                                            onChange={(e) => handleFindingFieldChange(page.id, selectedCheck.id, "recommendation", e.target.value)}
+                                                                                            className="text-xs min-h-[52px] resize-y bg-white dark:bg-background"
+                                                                                            rows={2}
+                                                                                        />
+                                                                                    </div>
+                                                                                    <div className="space-y-1">
+                                                                                        <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Screenshot</label>
+                                                                                        <Input
+                                                                                            placeholder="URL or file path to screenshot"
+                                                                                            value={findingDrafts[`${page.id}:screenshot`] ?? result.screenshot ?? ""}
+                                                                                            onChange={(e) => handleFindingFieldChange(page.id, selectedCheck.id, "screenshot", e.target.value)}
+                                                                                            className="text-xs h-8 bg-white dark:bg-background"
+                                                                                        />
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()
                                     )}
 
                                     {/* Navigation */}

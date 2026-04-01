@@ -4,9 +4,9 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
-import { components, layouts, animations } from "@/lib/registry";
+import { components, layouts, animations, gestures } from "@/lib/registry";
 
-export type TabType = "components" | "layouts" | "animations";
+export type TabType = "components" | "layouts" | "animations" | "gestures";
 
 export function SandboxShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,12 +15,13 @@ export function SandboxShell({ children }: { children: React.ReactNode }) {
   const deriveTab = (): TabType => {
     if (pathname.startsWith("/layouts")) return "layouts";
     if (pathname.startsWith("/animations")) return "animations";
+    if (pathname.startsWith("/gestures")) return "gestures";
     return "components";
   };
 
   const [activeTab, setActiveTab] = useState<TabType>(deriveTab);
 
-  const isLayoutPage = pathname.startsWith("/layouts");
+  const isFullScreen = pathname.startsWith("/layouts") || pathname.startsWith("/gestures");
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -30,13 +31,15 @@ export function SandboxShell({ children }: { children: React.ReactNode }) {
       router.push(`/layouts/${layouts[0].slug}`);
     } else if (tab === "animations" && animations.length > 0) {
       router.push(`/animations/${animations[0].slug}`);
+    } else if (tab === "gestures" && gestures.length > 0) {
+      router.push(`/gestures/${gestures[0].slug}`);
     } else {
       router.push(`/${tab}`);
     }
   };
 
-  // Layout pages: full-screen, no sidebar, bottom nav only
-  if (isLayoutPage) {
+  // Full-screen pages (layouts + gestures): no sidebar, bottom nav only
+  if (isFullScreen) {
     return (
       <div className="min-h-screen">
         <main className="pb-24">{children}</main>
@@ -45,7 +48,7 @@ export function SandboxShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Component pages: sidebar + bottom nav
+  // Component/animation pages: sidebar + bottom nav
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar activeTab={activeTab} />

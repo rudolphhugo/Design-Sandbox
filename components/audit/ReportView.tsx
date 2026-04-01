@@ -9,6 +9,8 @@ import {
   Printer,
   FileText,
   ChevronDown,
+  Sheet,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,12 +24,14 @@ import { getProject } from "@/lib/audit-storage";
 import {
   buildReportData,
   generateMarkdown,
+  generateCSV,
   getExecutiveSummary,
   STRINGS,
   type Lang,
   type GroupedFinding,
   type Strings,
   type ReportData,
+  type CsvOptions,
 } from "@/lib/audit-report";
 
 interface Props {
@@ -84,6 +88,8 @@ const VERDICT_ICON: Record<ReportData["conformanceVerdict"], string> = {
 export function ReportView({ projectId }: Props) {
   const router = useRouter();
   const [lang, setLang] = useState<Lang>("en");
+  const [csvModalOpen, setCsvModalOpen] = useState(false);
+  const [csvOptions, setCsvOptions] = useState<CsvOptions>({ includePass: false, includeNa: false });
 
   const [project] = useState(() =>
     typeof window !== "undefined" ? getProject(projectId) ?? null : null
@@ -115,6 +121,19 @@ export function ReportView({ projectId }: Props) {
     a.download = `a11y-audit-${slug}-${project!.auditDate}.md`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleCsvDownload() {
+    const csv = generateCSV(project!, csvOptions);
+    const slug = project!.clientName.toLowerCase().replace(/\s+/g, "-");
+    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${slug}-audit.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setCsvModalOpen(false);
   }
 
   return (
@@ -165,6 +184,10 @@ export function ReportView({ projectId }: Props) {
               <DropdownMenuItem onClick={handleMarkdownExport} className="gap-2">
                 <FileText className="w-4 h-4" />
                 {t.export.markdown}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setCsvModalOpen(true)} className="gap-2">
+                <Sheet className="w-4 h-4" />
+                Spreadsheet (CSV)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => window.print()} className="gap-2">
                 <Printer className="w-4 h-4" />
@@ -446,6 +469,66 @@ export function ReportView({ projectId }: Props) {
           {t.footer} · {project.auditDate} · {project.auditorName}
         </div>
       </div>
+
+      {/* ── CSV Export Modal ──────────────────────────────────── */}
+      {csvModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center print:hidden">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setCsvModalOpen(false)}
+          />
+          <div className="relative bg-card border border-border rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold">Export spreadsheet</h3>
+              <button
+                onClick={() => setCsvModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={csvOptions.includePass}
+                  onChange={(e) =>
+                    setCsvOptions((prev) => ({ ...prev, includePass: e.target.checked }))
+                  }
+                  className="rounded border-border"
+                />
+                <span className="text-sm">Include Pass results</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={csvOptions.includeNa}
+                  onChange={(e) =>
+                    setCsvOptions((prev) => ({ ...prev, includeNa: e.target.checked }))
+                  }
+                  className="rounded border-border"
+                />
+                <span className="text-sm">Include N/A results</span>
+              </label>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCsvModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleCsvDownload} className="gap-1.5">
+                <Download className="w-3.5 h-3.5" />
+                Download CSV
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

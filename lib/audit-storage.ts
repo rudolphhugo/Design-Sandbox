@@ -1,9 +1,56 @@
 import type { AuditProject, AuditPage, CheckResult, ConformanceTarget } from "./audit-types";
 import { ALL_CHECKS } from "./audit-checks";
 
+/** Returns page-scoped checks applicable to the given target (excludes project-level checks). */
 export function getChecksForTarget(target: ConformanceTarget): typeof ALL_CHECKS {
   const includeAAA = target === "WCAG 2.1 AAA" || target === "WCAG 2.2 AAA";
-  return includeAAA ? ALL_CHECKS : ALL_CHECKS.filter((c) => c.level !== "AAA");
+  return ALL_CHECKS.filter((c) => {
+    if (c.scope === "project") return false;
+    if (c.applicableTargets && !c.applicableTargets.includes(target)) return false;
+    if (!includeAAA && c.level === "AAA") return false;
+    return true;
+  });
+}
+
+/** Returns project-scoped checks for the given target (e.g. EN 301 549 site-wide requirements). */
+export function getProjectChecksForTarget(target: ConformanceTarget): typeof ALL_CHECKS {
+  return ALL_CHECKS.filter(
+    (c) =>
+      c.scope === "project" &&
+      (!c.applicableTargets || c.applicableTargets.includes(target))
+  );
+}
+
+/** Ensures a project has projectChecks initialised (migration for existing projects). */
+export function migrateProject(project: AuditProject): AuditProject {
+  // 1. Backfill project-level checks (EN 301 549 site-wide requirements)
+  const projectLevelChecks = getProjectChecksForTarget(project.conformanceTarget);
+  const existingProjectCheckIds = new Set((project.projectChecks ?? []).map((c) => c.checkId));
+  const missingProjectChecks = projectLevelChecks
+    .filter((c) => !existingProjectCheckIds.has(c.id))
+    .map((c) => ({ checkId: c.id, status: "pending" as const, notes: "" }));
+
+  // 2. Backfill per-page checks — any check added to audit-checks.ts after the page was created
+  const allPageChecks = ALL_CHECKS.filter((c) => c.scope !== "project");
+  const migratedPages = project.pages.map((page) => {
+    const existingCheckIds = new Set(page.checks.map((c) => c.checkId));
+    const missing = allPageChecks
+      .filter((c) => !existingCheckIds.has(c.id))
+      .map((c) => ({ checkId: c.id, status: "pending" as const, notes: "" }));
+    if (missing.length === 0) return page;
+    return { ...page, checks: [...page.checks, ...missing] };
+  });
+
+  const needsProjectUpdate = missingProjectChecks.length > 0 || project.projectChecks === undefined;
+  const needsPageUpdate = migratedPages.some((p, i) => p !== project.pages[i]);
+
+  if (!needsProjectUpdate && !needsPageUpdate) return project;
+
+  return {
+    ...project,
+    projectChecks: [...(project.projectChecks ?? []), ...missingProjectChecks],
+    pages: migratedPages,
+  };
 }
 
 const STORAGE_KEY = "a11y-audit-projects";
@@ -19,7 +66,8 @@ export function getProjects(): AuditProject[] {
 }
 
 export function getProject(id: string): AuditProject | undefined {
-  return getProjects().find((p) => p.id === id);
+  const p = getProjects().find((p) => p.id === id);
+  return p ? migrateProject(p) : undefined;
 }
 
 export function saveProject(project: AuditProject): void {
@@ -39,11 +87,23 @@ export function deleteProject(id: string): void {
 }
 
 export function createDefaultChecks(): CheckResult[] {
-  return ALL_CHECKS.map((c) => ({
+  return ALL_CHECKS.filter((c) => c.scope !== "project").map((c) => ({
     checkId: c.id,
     status: "pending" as const,
     notes: "",
   }));
+}
+
+export function updateProjectCheckResult(
+  project: AuditProject,
+  result: CheckResult
+): AuditProject {
+  return {
+    ...project,
+    projectChecks: (project.projectChecks ?? []).map((c) =>
+      c.checkId === result.checkId ? result : c
+    ),
+  };
 }
 
 export function createPage(name: string, url: string): AuditPage {
@@ -103,6 +163,20 @@ export function getPhaseProgress(
   return {
     total: phaseChecks.length,
     done: results.filter((r) => r.status !== "pending").length,
+  };
+}
+
+export function updateSiteWideFlag(
+  project: AuditProject,
+  checkId: string,
+  value: boolean
+): AuditProject {
+  return {
+    ...project,
+    siteWideFlags: {
+      ...project.siteWideFlags,
+      [checkId]: value,
+    },
   };
 }
 

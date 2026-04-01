@@ -1,5 +1,6 @@
 import type { AuditProject, AuditCheck, CheckStatus, Severity } from "./audit-types";
 import { getChecksForTarget, getFindings } from "./audit-storage";
+import { ALL_CHECKS } from "./audit-checks";
 
 export type Lang = "en" | "sv";
 
@@ -341,6 +342,112 @@ export function getExecutiveSummary(data: ReportData, lang: Lang): string {
     text += ` Note: ${pendingCount} check${pendingCount !== 1 ? "s" : ""} remain pending review — the verdict may change once all criteria have been assessed.`;
   }
   return text;
+}
+
+// ─── CSV export ───────────────────────────────────────────────────────────────
+
+export type CsvOptions = {
+  includePass: boolean;
+  includeNa: boolean;
+};
+
+function csvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+export function generateCSV(project: AuditProject, options: CsvOptions): string {
+  const header = [
+    "Problemnummer",
+    "Plats på hemsidan",
+    "Sidans URL",
+    "Miljö",
+    "Problem",
+    "Eventuell kod",
+    "Kriteria",
+    "Berörda användare",
+    "Rekommendation",
+    "Skärmbild",
+    "Noteringar",
+  ];
+
+  const statusOrder: Record<string, number> = { fail: 0, partial: 1, pass: 2, na: 3 };
+
+  type Row = {
+    status: CheckStatus;
+    pageName: string;
+    location: string;
+    pageUrl: string;
+    environment: string;
+    issue: string;
+    applicableCode: string;
+    criteria: string;
+    affectedUsers: string;
+    recommendation: string;
+    screenshot: string;
+    notes: string;
+  };
+
+  const rows: Row[] = [];
+
+  for (const page of project.pages) {
+    for (const check of page.checks) {
+      if (check.status === "pending") continue;
+      if (check.status === "pass" && !options.includePass) continue;
+      if (check.status === "na" && !options.includeNa) continue;
+
+      const checkDef = ALL_CHECKS.find((c) => c.id === check.checkId);
+
+      rows.push({
+        status: check.status,
+        pageName: page.name,
+        location: check.location ?? "",
+        pageUrl: page.url,
+        environment: project.environment ?? "",
+        issue: check.issue ?? "",
+        applicableCode: check.applicableCode ?? "",
+        criteria: checkDef ? `WCAG ${checkDef.wcag}` : check.checkId,
+        affectedUsers: checkDef?.affectedUsers
+          ? checkDef.affectedUsers.map((u) => u.charAt(0).toUpperCase() + u.slice(1)).join(", ")
+          : "",
+        recommendation: check.recommendation ?? "",
+        screenshot: check.screenshot ?? "",
+        notes: check.notes,
+      });
+    }
+  }
+
+  // Sort: fail first, then partial, then pass, then na; within each group sort by page name
+  rows.sort((a, b) => {
+    const statusDiff = (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99);
+    if (statusDiff !== 0) return statusDiff;
+    return a.pageName.localeCompare(b.pageName);
+  });
+
+  let issueCounter = 0;
+  const csvLines: string[] = [header.map(csvCell).join(";")];
+
+  for (const row of rows) {
+    const isIssue = row.status === "fail" || row.status === "partial";
+    if (isIssue) issueCounter++;
+
+    const cells = [
+      isIssue ? String(issueCounter) : "",
+      row.location,
+      row.pageUrl,
+      row.environment,
+      row.issue,
+      row.applicableCode,
+      row.criteria,
+      row.affectedUsers,
+      row.recommendation,
+      row.screenshot,
+      row.notes,
+    ];
+
+    csvLines.push(cells.map(csvCell).join(";"));
+  }
+
+  return csvLines.join("\n");
 }
 
 // ─── Markdown export ──────────────────────────────────────────────────────────

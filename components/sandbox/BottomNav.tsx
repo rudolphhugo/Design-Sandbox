@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Layers, LayoutTemplate, ChevronDown, Sparkles } from "lucide-react";
+import { Layers, LayoutTemplate, ChevronDown, Sparkles, Hand } from "lucide-react";
 import { layouts } from "@/lib/registry";
 import type { TabType } from "./SandboxShell";
 
@@ -105,6 +105,18 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
         >
           <Sparkles className="h-4 w-4" />
           Animations
+        </button>
+
+        <button
+          onClick={() => onTabChange("gestures")}
+          className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors ${
+            activeTab === "gestures"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-accent"
+          }`}
+        >
+          <Hand className="h-4 w-4" />
+          Gestures
         </button>
       </nav>
     </div>

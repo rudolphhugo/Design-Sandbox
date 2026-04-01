@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { components, layouts, animations, type RegistryItem } from "@/lib/registry";
+import { components, layouts, animations, gestures, type RegistryItem } from "@/lib/registry";
 import type { TabType } from "./SandboxShell";
 
 interface SidebarProps {
@@ -11,8 +11,9 @@ interface SidebarProps {
 
 const tabItems: Record<TabType, { items: RegistryItem[]; basePath: string }> = {
   components: { items: components, basePath: "/components" },
-  layouts: { items: layouts, basePath: "/layouts" },
+  layouts:    { items: layouts,    basePath: "/layouts" },
   animations: { items: animations, basePath: "/animations" },
+  gestures:   { items: gestures,   basePath: "/gestures" },
 };
 
 export function Sidebar({ activeTab }: SidebarProps) {

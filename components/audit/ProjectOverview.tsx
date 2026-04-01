@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Reorder } from "motion/react";
 import {
   ArrowLeft,
   Plus,
@@ -16,6 +17,7 @@ import {
   X,
   FileText,
   ScrollText,
+  GripVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +61,7 @@ export function ProjectOverview({ projectId }: Props) {
   const [editingPageId, setEditingPageId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editUrl, setEditUrl] = useState("");
+
 
   useEffect(() => {
     if (!project) router.push("/layouts/a11y-audit");
@@ -224,14 +227,25 @@ export function ProjectOverview({ projectId }: Props) {
           </div>
 
           {project.pages.length > 0 && (
-            <div className="divide-y divide-border/50 rounded-xl border border-border/50 overflow-hidden">
+            <Reorder.Group
+              axis="y"
+              values={project.pages}
+              onReorder={(newOrder) => {
+                const updated = { ...project, pages: newOrder };
+                saveProject(updated);
+                setProject(updated);
+              }}
+              className="divide-y divide-border/50 rounded-xl border border-border/50 overflow-hidden"
+            >
               {project.pages.map((page) => {
                 const { done, total, pct } = getPageProgress(page);
                 const isEditing = editingPageId === page.id;
 
                 return (
-                  <div
+                  <Reorder.Item
                     key={page.id}
+                    value={page}
+                    dragListener={!isEditing}
                     className={`flex items-center gap-3 px-4 py-3 bg-card transition-colors group ${
                       isEditing ? "" : "hover:bg-accent/30 cursor-pointer"
                     }`}
@@ -239,7 +253,18 @@ export function ProjectOverview({ projectId }: Props) {
                       if (!isEditing)
                         router.push(`/layouts/a11y-audit/${projectId}/audit/${page.id}`);
                     }}
+                    whileDrag={{ scale: 1.01, boxShadow: "0 4px 16px rgba(0,0,0,0.10)", zIndex: 10, position: "relative" }}
                   >
+                    {/* Drag handle */}
+                    {!isEditing && (
+                      <div
+                        className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <GripVertical className="w-4 h-4" />
+                      </div>
+                    )}
+
                     <div className="shrink-0">{statusIcon[page.status]}</div>
 
                     {isEditing ? (
@@ -324,10 +349,10 @@ export function ProjectOverview({ projectId }: Props) {
                         </div>
                       </>
                     )}
-                  </div>
+                  </Reorder.Item>
                 );
               })}
-            </div>
+            </Reorder.Group>
           )}
 
           {/* Add page form */}

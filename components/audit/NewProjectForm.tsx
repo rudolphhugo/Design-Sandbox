@@ -23,6 +23,7 @@ export function NewProjectForm() {
     websiteUrl: "",
     conformanceTarget: "EN 301 549" as ConformanceTarget,
     auditorName: "",
+    environment: "",
   });
 
   useEffect(() => {
@@ -137,6 +138,22 @@ export function NewProjectForm() {
                   required
                   className="bg-white dark:bg-background"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium" htmlFor="environment">
+                  Environment
+                </label>
+                <Input
+                  id="environment"
+                  placeholder="e.g. Mac / Chrome 120 / VoiceOver"
+                  value={form.environment}
+                  onChange={(e) => setForm({ ...form, environment: e.target.value })}
+                  className="bg-white dark:bg-background"
+                />
+                <p className="text-xs text-muted-foreground">
+                  The browser, OS, and assistive technology used during testing.
+                </p>
               </div>
             </div>
           </div>

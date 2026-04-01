@@ -17,6 +17,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Title is present, unique per page, and describes the topic or purpose.",
     roles: ["content"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "auto-02",
@@ -33,6 +34,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       'A valid lang attribute exists on <html> matching the page\'s primary language (e.g. lang="sv").',
     roles: ["developer", "content"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "auto-03",
@@ -49,6 +51,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All informative images have descriptive alt text. Decorative images have empty alt (alt=\"\"). No images use filename or 'image of' as alt.",
     roles: ["content", "developer"],
+    affectedUsers: ["blind"],
   },
   {
     id: "auto-04",
@@ -65,13 +68,14 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every input has an associated <label> element or aria-label/aria-labelledby. Labels are visible (not hidden off-screen unless intentional).",
     roles: ["developer", "content"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
   {
     id: "auto-05",
     phase: "automated",
     category: "Structure",
     title: "Headings are hierarchical with no skipped levels",
-    wcag: "1.3.1",
+    wcag: "2.4.6",
     level: "A",
     whyItMatters:
       "Screen reader users navigate by headings like a table of contents. Skipping from H1 to H4 breaks the logical structure and confuses navigation.",
@@ -81,13 +85,14 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "One H1 per page. Heading levels increment sequentially. No level skips (e.g. H2 directly to H4).",
     roles: ["content", "developer"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "auto-06",
     phase: "automated",
     category: "Structure",
     title: "Landmark regions present and correct",
-    wcag: "1.3.1",
+    wcag: "2.4.1",
     level: "A",
     whyItMatters:
       "Landmarks (header, main, nav, footer) let screen reader users jump directly to sections. Without them, users must listen through all content linearly.",
@@ -97,6 +102,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Page has <main>, <header>, and <footer>. Navigation menus use <nav>. Multiple <nav> elements are distinguishable via aria-label.",
     roles: ["developer"],
+    affectedUsers: ["blind"],
   },
   {
     id: "auto-07",
@@ -113,6 +119,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every link's purpose is clear from its text alone, or from its immediate surrounding context (e.g. a paragraph). No 'click here' or 'read more' links without context.",
     roles: ["content"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
   {
     id: "auto-08",
@@ -129,6 +136,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Normal text ≥4.5:1. Large text ≥3:1. Text in images same requirements. Logos and decorative text are exempt.",
     roles: ["designer"],
+    affectedUsers: ["low-vision", "cognitive"],
   },
   {
     id: "auto-09",
@@ -145,6 +153,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All active UI components and their visual boundaries achieve 3:1 contrast against adjacent colours. Inactive/disabled components are exempt.",
     roles: ["designer"],
+    affectedUsers: ["low-vision"],
   },
   {
     id: "auto-10",
@@ -161,13 +170,14 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every interactive element has an accessible name, semantic role, and correct state/value exposed to assistive technology.",
     roles: ["developer"],
+    affectedUsers: ["blind"],
   },
   {
     id: "auto-11",
     phase: "automated",
     category: "Audio & Video",
     title: "Auto-playing audio can be paused or stopped",
-    wcag: "2.2.2",
+    wcag: "1.4.2",
     level: "A",
     conditional: "Only if the page contains audio or video that auto-plays",
     whyItMatters:
@@ -178,6 +188,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Audio that auto-plays for >3 seconds has a pause, stop, or volume control that appears before the audio element in tab order.",
     roles: ["developer", "designer"],
+    affectedUsers: ["blind", "cognitive"],
   },
 
   // ─── PHASE 2: KEYBOARD NAVIGATION ────────────────────────────────────────
@@ -196,6 +207,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "First Tab press reveals a skip link. Activating it moves focus to the start of main content. Link is visibly focused.",
     roles: ["developer"],
+    affectedUsers: ["blind", "motor"],
   },
   {
     id: "key-02",
@@ -212,6 +224,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every feature and function available with a mouse is also fully operable using Tab, Enter, Escape, and arrow keys alone.",
     roles: ["developer", "qa"],
+    affectedUsers: ["blind", "motor"],
   },
   {
     id: "key-03",
@@ -228,6 +241,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Focus never becomes permanently trapped. Modals close with Escape and return focus to the trigger. Every focus entry point has an exit.",
     roles: ["developer", "qa"],
+    affectedUsers: ["blind", "motor"],
   },
   {
     id: "key-04",
@@ -244,6 +258,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Tab order follows a sequence that preserves meaning — generally top-left to bottom-right matching the reading order.",
     roles: ["developer", "designer"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
   {
     id: "key-05",
@@ -260,6 +275,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every focusable element shows a clearly visible focus indicator at all times. No element has outline: none without an equivalent visible replacement.",
     roles: ["designer", "developer"],
+    affectedUsers: ["blind", "motor", "low-vision"],
   },
   {
     id: "key-06",
@@ -276,6 +292,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Focus indicator achieves 3:1 contrast against both the surrounding background and the adjacent element colours.",
     roles: ["designer"],
+    affectedUsers: ["low-vision", "motor"],
   },
   {
     id: "key-07",
@@ -292,6 +309,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Focus alone causes no context changes. Page navigations, form submissions, and pop-ups only trigger on explicit activation (Enter, Space, click).",
     roles: ["developer"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
   {
     id: "key-08",
@@ -309,6 +327,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Hover-triggered content: (1) can be dismissed with Escape, (2) stays visible when hovering over the revealed content itself, (3) persists until user moves pointer away.",
     roles: ["developer", "designer"],
+    affectedUsers: ["low-vision", "motor", "cognitive"],
   },
 
   // ─── PHASE 3: SCREEN READER (VOICEOVER) ──────────────────────────────────
@@ -317,7 +336,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     phase: "screen-reader",
     category: "Structure",
     title: "Headings navigation works correctly in VoiceOver",
-    wcag: "1.3.1",
+    wcag: "2.4.6",
     level: "A",
     whyItMatters:
       "VoiceOver users navigate by headings as a fast way to scan page structure. Headings styled with CSS instead of real H tags are invisible to screen readers.",
@@ -328,13 +347,14 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All visible headings appear in VoiceOver's heading list. VoiceOver announces each heading with its level (e.g. 'Heading level 2').",
     roles: ["developer", "content", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-02",
     phase: "screen-reader",
     category: "Structure",
     title: "Landmark regions navigable in VoiceOver",
-    wcag: "1.3.1",
+    wcag: "2.4.1",
     level: "A",
     whyItMatters:
       "Landmarks give screen reader users a map of the page. Without them, navigating a complex page requires listening to everything.",
@@ -345,6 +365,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All major page regions appear as landmarks in VoiceOver. Multiple landmarks of the same type have unique labels.",
     roles: ["developer", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-03",
@@ -362,6 +383,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every link in the VoiceOver links list communicates its destination or purpose clearly without needing surrounding context.",
     roles: ["content", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-04",
@@ -379,6 +401,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Meaningful images are announced with descriptive alt text. Decorative images are skipped entirely. No filename or 'image of' alt text.",
     roles: ["content", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-05",
@@ -396,6 +419,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every form field is announced with its label and type. Required fields are announced as required. Groups of related fields have a group label.",
     roles: ["developer", "content", "qa"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "sr-06",
@@ -413,6 +437,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All buttons are announced as 'button'. Icon-only buttons have a meaningful accessible name. Toggle buttons announce their current state.",
     roles: ["developer", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-07",
@@ -431,6 +456,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Status messages (success, error, warning) are automatically announced by VoiceOver without requiring focus to move to them.",
     roles: ["developer", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-08",
@@ -449,6 +475,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Any inline content in a different language has a lang attribute on that element or a parent element. VoiceOver switches pronunciation correctly.",
     roles: ["developer", "content"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "sr-09",
@@ -466,6 +493,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every icon-only interactive element has an accessible name that clearly communicates its purpose, announced by VoiceOver.",
     roles: ["developer", "content"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-10",
@@ -484,6 +512,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Validation errors are announced automatically or announced when focus moves to the invalid field. Error text is associated with the field via aria-describedby.",
     roles: ["developer", "content", "qa"],
+    affectedUsers: ["blind", "cognitive"],
   },
 
   // ─── PHASE 4: VISUAL & COGNITIVE ─────────────────────────────────────────
@@ -502,6 +531,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every instance of colour-coded information has an additional non-colour indicator. Links in body text have underlines or other visual distinction.",
     roles: ["designer", "developer"],
+    affectedUsers: ["low-vision", "cognitive"],
   },
   {
     id: "vis-02",
@@ -518,6 +548,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "At 320px viewport width, all content is accessible by scrolling vertically only. No full-page horizontal scroll required.",
     roles: ["designer", "developer"],
+    affectedUsers: ["low-vision", "motor"],
   },
   {
     id: "vis-03",
@@ -534,6 +565,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "At 200% text size, all content remains readable and functional. No text is cut off, overlapping, or hidden. Layout may reflow but all content is accessible.",
     roles: ["designer", "developer"],
+    affectedUsers: ["low-vision"],
   },
   {
     id: "vis-04",
@@ -550,6 +582,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "When all four text spacing properties are overridden, no content is clipped, lost, or causes layout overlap. All text remains readable.",
     roles: ["developer", "designer"],
+    affectedUsers: ["low-vision", "cognitive"],
   },
   {
     id: "vis-05",
@@ -567,6 +600,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "No content flashes more than 3 times per second. Or flashing content is below the general flash threshold (small area, low contrast).",
     roles: ["designer", "qa"],
+    affectedUsers: ["seizure"],
   },
   {
     id: "vis-06",
@@ -584,6 +618,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All moving/auto-updating content that lasts >5 seconds has a keyboard-accessible pause, stop, or hide control appearing before the content in DOM order.",
     roles: ["developer", "designer"],
+    affectedUsers: ["cognitive", "motor"],
   },
   {
     id: "vis-07",
@@ -600,6 +635,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Navigation components appear in the same relative order on every page they appear. Position may differ in layout but order within the component stays consistent.",
     roles: ["designer", "developer"],
+    affectedUsers: ["cognitive"],
   },
   {
     id: "vis-08",
@@ -616,6 +652,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Components that perform the same function are consistently labelled with the same visible text and accessible name across all pages.",
     roles: ["designer", "content"],
+    affectedUsers: ["cognitive"],
   },
 
   // ─── PHASE 5: CODE & STRUCTURE ────────────────────────────────────────────
@@ -635,6 +672,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All personal data input fields have a valid autocomplete attribute that matches the data type being collected.",
     roles: ["developer"],
+    affectedUsers: ["motor", "cognitive"],
   },
   {
     id: "code-02",
@@ -651,6 +689,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "For all elements with visible text labels, that text is included in the element's accessible name. Accessible name may add more context but cannot omit the visible text.",
     roles: ["developer", "content"],
+    affectedUsers: ["motor", "blind"],
   },
   {
     id: "code-03",
@@ -667,6 +706,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Reading the page without CSS, content appears in a logical order that conveys the same meaning as the styled version.",
     roles: ["developer"],
+    affectedUsers: ["blind"],
   },
   {
     id: "code-04",
@@ -684,6 +724,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All passages in a different language than the page default have a lang attribute specifying the correct language code on that element.",
     roles: ["developer", "content"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "code-05",
@@ -700,6 +741,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All visual lists use correct semantic list elements. Navigation menus use <ul>/<li>. Numbered sequences use <ol>. Term-definition pairs use <dl>.",
     roles: ["developer"],
+    affectedUsers: ["blind"],
   },
   {
     id: "code-06",
@@ -717,6 +759,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All data tables have header cells marked with <th>. Tables have a <caption> or aria-label. Complex tables have proper scope or headers/id associations.",
     roles: ["developer", "content"],
+    affectedUsers: ["blind"],
   },
   {
     id: "code-07",
@@ -734,6 +777,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Errors are identified in text. Each error message is programmatically linked to its field via aria-describedby. Invalid fields have aria-invalid='true'.",
     roles: ["developer", "content"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "code-08",
@@ -751,6 +795,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Error messages describe the error and provide actionable guidance on how to correct it, unless doing so would compromise security or the purpose of the check.",
     roles: ["content"],
+    affectedUsers: ["cognitive"],
   },
   {
     id: "code-09",
@@ -768,6 +813,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Consequential actions are either reversible, have a confirmation/review step before submission, or allow correction of errors before finalising.",
     roles: ["developer", "designer"],
+    affectedUsers: ["motor", "cognitive"],
   },
   {
     id: "code-10",
@@ -785,6 +831,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every page (outside process steps) can be reached by at least two different methods: e.g. navigation + search, navigation + sitemap, etc.",
     roles: ["designer", "developer"],
+    affectedUsers: ["motor", "cognitive"],
   },
   {
     id: "code-11",
@@ -801,6 +848,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "No instructions rely solely on sensory characteristics (colour, shape, size, location, sound). Each instruction also provides a name, label, or non-sensory description.",
     roles: ["content"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "code-12",
@@ -818,6 +866,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "No automatic refresh or redirect occurs without warning. Session timeouts give ≥20 seconds notice and allow extension. Default timeout is ≥20 hours.",
     roles: ["developer"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
 
   // ─── MISSING AA/A CHECKS ──────────────────────────────────────────────────
@@ -838,6 +887,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "No images of text are used where real styled text could achieve the same visual effect. Logotypes and essential text in photos are the only exceptions.",
     roles: ["developer", "designer"],
+    affectedUsers: ["low-vision", "cognitive"],
   },
 
   // Phase 2: Keyboard
@@ -857,6 +907,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Single-character shortcuts can be disabled, remapped to a modifier-key combination, or are only active when focus is on a specific UI component.",
     roles: ["developer"],
+    affectedUsers: ["motor"],
   },
   {
     id: "key-10",
@@ -873,6 +924,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every heading describes the content that follows it. Every label describes the purpose of its associated form field. No field relies solely on placeholder text.",
     roles: ["content", "designer"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "key-11",
@@ -890,6 +942,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "When any component receives keyboard focus, it is not entirely hidden by author-created overlapping content. At least part of the component is visible.",
     roles: ["developer", "designer"],
+    affectedUsers: ["motor", "low-vision"],
   },
   {
     id: "key-12",
@@ -907,6 +960,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every multi-touch gesture has an equivalent single-pointer alternative that achieves the same function.",
     roles: ["developer"],
+    affectedUsers: ["motor"],
   },
   {
     id: "key-13",
@@ -923,6 +977,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Actions activate on pointer up (mouseup/touchend), not on pointer down. Or if down-event is used, the action can be cancelled by moving away before releasing.",
     roles: ["developer"],
+    affectedUsers: ["motor"],
   },
   {
     id: "key-14",
@@ -940,6 +995,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Any functionality triggered by device motion has an equivalent UI control. Users can disable the motion trigger without affecting system-level accessibility.",
     roles: ["developer"],
+    affectedUsers: ["motor"],
   },
   {
     id: "key-15",
@@ -957,6 +1013,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All dragging functionality has an equivalent single-pointer alternative that does not require dragging. Exception: dragging is essential to the function.",
     roles: ["developer"],
+    affectedUsers: ["motor"],
   },
   {
     id: "key-16",
@@ -974,6 +1031,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All interactive targets are at least 24×24 CSS pixels in size, OR have sufficient spacing so the target offset area is at least 24×24px.",
     roles: ["designer", "developer"],
+    affectedUsers: ["motor"],
   },
 
   // Phase 3: Screen Reader — missing media checks
@@ -994,6 +1052,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every prerecorded audio-only file has a full text transcript provided on the same page or via an accessible link immediately adjacent to the player.",
     roles: ["content", "qa"],
+    affectedUsers: ["deaf"],
   },
   {
     id: "sr-12",
@@ -1011,6 +1070,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every prerecorded video-only file has either a text alternative describing all visual content, or an audio description track.",
     roles: ["content", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-13",
@@ -1029,6 +1089,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All prerecorded video with audio has accurate, synchronised captions. Captions include all dialogue, speaker identification, and relevant non-speech audio.",
     roles: ["content", "qa"],
+    affectedUsers: ["deaf"],
   },
   {
     id: "sr-14",
@@ -1046,6 +1107,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All important visual content in prerecorded video is either described in the main audio track, or an audio description track is available and selectable.",
     roles: ["content", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "sr-15",
@@ -1063,6 +1125,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All live video with audio has synchronised captions available. Captions do not need to be perfect but must be accurate enough to convey the essential content.",
     roles: ["content", "qa"],
+    affectedUsers: ["deaf"],
   },
 
   // Phase 4: Visual — missing checks
@@ -1082,6 +1145,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Page content works in both portrait and landscape orientations. No orientation lock is applied unless the specific content requires it.",
     roles: ["designer", "developer"],
+    affectedUsers: ["motor", "low-vision"],
   },
   {
     id: "vis-10",
@@ -1098,6 +1162,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Changing the value of any UI component does not automatically trigger a context change (navigation, form submission, new window). Changes only happen on explicit user action.",
     roles: ["developer"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
   {
     id: "vis-11",
@@ -1115,6 +1180,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "If a help mechanism exists, it appears in the same relative location on every page it appears. It is keyboard accessible and consistently labelled.",
     roles: ["designer", "developer"],
+    affectedUsers: ["cognitive"],
   },
 
   // Phase 5: Code — missing checks
@@ -1134,6 +1200,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Information already entered earlier in the same process is either auto-populated, available to select, or not required again. Security confirmation re-entry is exempt.",
     roles: ["developer"],
+    affectedUsers: ["motor", "cognitive"],
   },
   {
     id: "code-14",
@@ -1151,6 +1218,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Authentication does not require solving a cognitive function test (transcribing, puzzle-solving) unless an alternative method is provided. Copy-paste must be allowed.",
     roles: ["developer"],
+    affectedUsers: ["cognitive"],
   },
 
   // ─── AAA CHECKS ───────────────────────────────────────────────────────────
@@ -1171,6 +1239,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Normal text achieves 7:1 contrast. Large text achieves 4.5:1. All AA contrast requirements are also met.",
     roles: ["designer"],
+    affectedUsers: ["low-vision", "cognitive"],
   },
   {
     id: "aaa-02",
@@ -1187,6 +1256,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "No images of text are used anywhere on the page. All text — including logotypes — is rendered using real, styled text.",
     roles: ["developer", "designer"],
+    affectedUsers: ["low-vision"],
   },
 
   // Phase 2: Keyboard — AAA
@@ -1205,6 +1275,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every single function on the page — without any exception — is operable by keyboard alone. No path-dependent-input exceptions apply.",
     roles: ["developer", "qa"],
+    affectedUsers: ["blind", "motor"],
   },
   {
     id: "aaa-04",
@@ -1222,6 +1293,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "When any component receives keyboard focus, it is completely visible — not partially hidden by any other author-created content.",
     roles: ["developer", "designer"],
+    affectedUsers: ["motor", "low-vision"],
   },
   {
     id: "aaa-05",
@@ -1239,6 +1311,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Focus indicator has ≥2px perimeter around the component, achieves 3:1 contrast between focused and unfocused states, and is not obscured.",
     roles: ["designer", "developer"],
+    affectedUsers: ["motor", "low-vision"],
   },
   {
     id: "aaa-06",
@@ -1256,6 +1329,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All interactive targets are at least 44×44 CSS pixels. Inline text links within sentences are the only exception.",
     roles: ["designer"],
+    affectedUsers: ["motor"],
   },
   {
     id: "aaa-07",
@@ -1273,6 +1347,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "The page does not restrict use to a single input modality. All input methods (touch, mouse, keyboard, stylus) work at all times.",
     roles: ["developer"],
+    affectedUsers: ["motor"],
   },
 
   // Phase 3: Screen Reader — AAA
@@ -1292,6 +1367,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All prerecorded video with audio has sign language interpretation available in the primary sign language(s) of the intended audience.",
     roles: ["content", "qa"],
+    affectedUsers: ["deaf"],
   },
   {
     id: "aaa-09",
@@ -1309,6 +1385,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All visual content is fully described. If descriptions require pausing the video, an extended audio description version is provided.",
     roles: ["content", "qa"],
+    affectedUsers: ["blind"],
   },
   {
     id: "aaa-10",
@@ -1326,6 +1403,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "A full media alternative document exists that contains all spoken content and descriptions of all meaningful visual information. Accessible via a clearly labelled link.",
     roles: ["content", "qa"],
+    affectedUsers: ["blind", "deaf"],
   },
   {
     id: "aaa-11",
@@ -1343,6 +1421,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Live audio-only content has a real-time text alternative provided, either as live captions or a prepared equivalent text that is updated as the broadcast progresses.",
     roles: ["content", "qa"],
+    affectedUsers: ["deaf"],
   },
   {
     id: "aaa-12",
@@ -1360,6 +1439,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "The purpose of all icons, components, and regions is programmatically determinable using standard HTML semantics and ARIA, enabling personalisation by assistive tech.",
     roles: ["developer"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "aaa-13",
@@ -1376,6 +1456,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "A mechanism is available to identify definitions of unusual words, technical terms, jargon, and idioms. Definitions are accessible to all users including screen readers.",
     roles: ["content"],
+    affectedUsers: ["cognitive"],
   },
   {
     id: "aaa-14",
@@ -1393,6 +1474,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "A mechanism is available to expand all abbreviations. First use provides the full form, or a glossary/definition is accessible. <abbr> elements with title attributes are used.",
     roles: ["content"],
+    affectedUsers: ["cognitive", "blind"],
   },
   {
     id: "aaa-15",
@@ -1409,6 +1491,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Content is written at lower secondary education level, OR supplementary content in plain language is provided that explains the complex content.",
     roles: ["content"],
+    affectedUsers: ["cognitive"],
   },
   {
     id: "aaa-16",
@@ -1426,6 +1509,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "A mechanism is provided to identify the correct pronunciation of any word where meaning cannot be determined without knowing how it is pronounced.",
     roles: ["content"],
+    affectedUsers: ["cognitive", "blind"],
   },
 
   // Phase 4: Visual — AAA
@@ -1445,6 +1529,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Background audio does not play, can be turned off, or is at least 20dB lower than foreground speech. Sound effects under 3 seconds are exempt.",
     roles: ["designer", "developer"],
+    affectedUsers: ["deaf", "cognitive"],
   },
   {
     id: "aaa-18",
@@ -1461,6 +1546,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Text blocks: ≤80 chars wide, not justified, line spacing ≥1.5×, paragraph spacing ≥1.5× line height. Colour is not forced (user browser settings respected). Resizes to 200% without horizontal scroll.",
     roles: ["designer", "developer"],
+    affectedUsers: ["low-vision", "cognitive"],
   },
   {
     id: "aaa-19",
@@ -1478,6 +1564,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "No time limits are imposed by the content. Exceptions: real-time events where timing is essential, and interactions where time is absolutely required.",
     roles: ["developer"],
+    affectedUsers: ["cognitive", "motor"],
   },
   {
     id: "aaa-20",
@@ -1495,6 +1582,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Users can postpone or suppress all interruptions — either individually or globally. Emergency alerts are the only exception.",
     roles: ["developer"],
+    affectedUsers: ["cognitive", "blind"],
   },
   {
     id: "aaa-21",
@@ -1512,6 +1600,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "After session expiry and re-authentication, all data entered by the user is preserved and the user can continue from where they left off.",
     roles: ["developer"],
+    affectedUsers: ["cognitive", "motor"],
   },
   {
     id: "aaa-22",
@@ -1529,6 +1618,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Users are warned of data loss risk before inactivity causes it. Warning is accessible, gives sufficient time, and is announced by assistive technology.",
     roles: ["developer", "content"],
+    affectedUsers: ["cognitive", "motor"],
   },
   {
     id: "aaa-23",
@@ -1546,6 +1636,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Absolutely no content flashes more than 3 times per second. No luminance threshold exceptions. This is a hard limit.",
     roles: ["designer", "qa"],
+    affectedUsers: ["seizure"],
   },
   {
     id: "aaa-24",
@@ -1563,6 +1654,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All motion animations triggered by interaction can be disabled via the prefers-reduced-motion media query or a user-accessible control. Essential motion is exempt.",
     roles: ["developer", "designer"],
+    affectedUsers: ["seizure", "cognitive"],
   },
   {
     id: "aaa-25",
@@ -1580,6 +1672,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "A mechanism is available to identify the user's location within the site — breadcrumbs, current-page indicator in navigation, or site map.",
     roles: ["designer", "developer"],
+    affectedUsers: ["cognitive", "blind"],
   },
   {
     id: "aaa-26",
@@ -1596,6 +1689,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All sections of content within a page are labelled with a heading. No significant block of content exists without a heading to introduce it.",
     roles: ["content", "developer"],
+    affectedUsers: ["blind", "cognitive"],
   },
   {
     id: "aaa-27",
@@ -1612,6 +1706,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Context changes only occur when the user explicitly requests them. No automatic context changes on hover, scroll, focus, or passive interaction.",
     roles: ["developer"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
 
   // Phase 5: Code — AAA
@@ -1631,6 +1726,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Every link's purpose is unambiguous from its text alone, without needing to read surrounding content. No generic link text is used.",
     roles: ["content"],
+    affectedUsers: ["blind", "motor", "cognitive"],
   },
   {
     id: "aaa-29",
@@ -1649,6 +1745,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Context-sensitive help is available for every input field. Help text is visible, correctly associated with its field, and announced by screen readers.",
     roles: ["content", "developer"],
+    affectedUsers: ["cognitive"],
   },
   {
     id: "aaa-30",
@@ -1665,6 +1762,7 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "All form submissions are either reversible, include a review/confirm step, or allow error correction before final submission. No exceptions for non-consequential forms.",
     roles: ["developer"],
+    affectedUsers: ["cognitive", "motor"],
   },
   {
     id: "aaa-31",
@@ -1682,6 +1780,242 @@ export const ALL_CHECKS: AuditCheck[] = [
     passCondition:
       "Authentication requires no cognitive function test of any kind. No CAPTCHA, image recognition, or puzzle. Passkeys, magic links, and similar are acceptable.",
     roles: ["developer"],
+    affectedUsers: ["cognitive"],
+  },
+
+  // ─── MISSING WCAG CRITERIA ───────────────────────────────────────────────
+
+  {
+    id: "auto-13",
+    phase: "automated",
+    category: "Media",
+    title: "Auto-playing audio has a pause/stop/mute control",
+    wcag: "1.4.2",
+    level: "A",
+    whyItMatters:
+      "Screen readers use audio to convey content. If audio plays automatically, it collides with the screen reader speech and the user cannot hear either. This is distinct from 2.2.2 (pausing moving content) — it specifically governs audio playback control.",
+    howToTest:
+      "1. Load the page. Does any audio start playing automatically?\n2. If yes: does it stop automatically within 3 seconds?\n3. If it plays longer: is there a pause, stop, or mute control visible and reachable by keyboard?\n4. Does that control appear before the audio element in tab order so it can be reached quickly?",
+    tool: "Manual testing, keyboard navigation",
+    passCondition:
+      "No audio auto-plays for more than 3 seconds — OR — a keyboard-accessible pause, stop, or volume control appears before the audio source in tab order.",
+    roles: ["developer", "content"],
+    affectedUsers: ["blind", "cognitive"],
+  },
+  {
+    id: "code-15",
+    phase: "code",
+    category: "Page Basics",
+    title: "HTML markup is valid and well-formed",
+    wcag: "4.1.1",
+    level: "A",
+    whyItMatters:
+      "Assistive technologies parse the DOM directly. Invalid HTML — duplicate IDs, unclosed tags, invalid nesting — causes screen readers to skip content or misreport structure. WCAG 2.2 deprecated this criterion but it remains required for WCAG 2.1 and EN 301 549 targets.",
+    howToTest:
+      "1. Submit the page URL to the W3C Markup Validation Service (validator.w3.org).\n2. Filter results: focus on errors (red), not just warnings.\n3. Key issues to fix: duplicate id attributes, invalid element nesting, unknown attributes on standard elements.\n4. Re-validate after fixes to confirm resolution.",
+    tool: "W3C Markup Validator (validator.w3.org), browser DevTools",
+    passCondition:
+      "No validation errors that would cause assistive technologies to misparse content. Duplicate IDs and invalid nesting are absent.",
+    applicableTargets: ["WCAG 2.1 AA", "WCAG 2.1 AAA", "EN 301 549"],
+    roles: ["developer"],
+    affectedUsers: ["blind"],
+  },
+
+  // ─── EN 301 549 — PAGE-LEVEL CHECKS ──────────────────────────────────────
+
+  {
+    id: "en-07",
+    phase: "code",
+    category: "EN 301 549 — Documents",
+    title: "Downloadable PDFs are tagged and accessible",
+    wcag: "EN 301 549 §10.1",
+    level: "AA",
+    whyItMatters:
+      "PDFs linked from web pages are part of the digital service. An untagged PDF is completely inaccessible to screen reader users. EN 301 549 Clause 10 requires that non-web documents linked from a website meet equivalent accessibility requirements to web content.",
+    howToTest:
+      "1. Identify all PDFs linked from this page.\n2. Open each in Adobe Acrobat: go to Tools → Accessibility → Full Check.\n3. Alternatively use PAC (PDF Accessibility Checker — free tool).\n4. Check: document is tagged, reading order is correct, images have alt text, form fields are labelled, heading structure exists, language is set.\n5. Open in a screen reader (NVDA or JAWS) and attempt to navigate by heading and form field.",
+    tool: "Adobe Acrobat Pro accessibility checker, PAC (PDF Accessibility Checker), NVDA",
+    passCondition:
+      "All PDFs are tagged. Images have alt text. Form fields are labelled. Reading order matches visual order. Document language is set. No accessibility errors in PAC.",
+    conditional: "Only required if this page links to downloadable PDF files.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content", "developer"],
+    affectedUsers: ["blind", "low-vision", "motor", "cognitive"],
+  },
+  {
+    id: "en-08",
+    phase: "code",
+    category: "EN 301 549 — Documents",
+    title: "Office documents (Word/Excel/PowerPoint) are accessible",
+    wcag: "EN 301 549 §10.1",
+    level: "AA",
+    whyItMatters:
+      "Word, Excel, and PowerPoint files linked from the site must also meet EN 301 549 Clause 10 requirements. Common failures: formatting applied manually instead of using styles (so no headings for screen readers), images without alt text, tables without headers.",
+    howToTest:
+      "1. Identify Office documents linked from this page.\n2. Open in Microsoft Office: File → Check for Issues → Check Accessibility.\n3. Verify: heading styles used (not just bold text), images have alt text, tables have header rows marked, hyperlinks are descriptive, reading order is logical.\n4. For spreadsheets: sheet tabs are named, data cells have column/row context.",
+    tool: "Microsoft Office built-in accessibility checker",
+    passCondition:
+      "All Office documents pass the built-in accessibility checker. Heading styles are used. Images have alt text. Tables have headers. Hyperlinks are descriptive.",
+    conditional: "Only required if this page links to Word, Excel, or PowerPoint files.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content"],
+    affectedUsers: ["blind", "low-vision", "motor", "cognitive"],
+  },
+  {
+    id: "en-09",
+    phase: "code",
+    category: "EN 301 549 — Documents",
+    title: "Inaccessible essential documents have an accessible alternative",
+    wcag: "EN 301 549 §10.2",
+    level: "AA",
+    whyItMatters:
+      "If a document cannot be made fully accessible (e.g. a legacy scanned PDF), EN 301 549 requires that an accessible alternative format is available. Users must be able to request it and receive it within a reasonable timeframe. This exemption cannot be used as a general workaround — only when remediation is genuinely disproportionately burdensome.",
+    howToTest:
+      "1. Identify any documents on this page that fail accessibility checks.\n2. Is there a link or clear instruction for requesting an accessible version?\n3. Is the request mechanism itself accessible (keyboard, screen reader)?\n4. Is the expected response time stated (best practice: ≤2 weeks)?",
+    tool: "Manual review",
+    passCondition:
+      "Either the document is fully accessible, or a clearly signposted mechanism exists to request an accessible alternative with a stated response time.",
+    conditional: "Only required if this page contains documents that cannot be fully remediated.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content"],
+    affectedUsers: ["blind", "low-vision", "deaf", "motor", "cognitive"],
+  },
+  {
+    id: "en-10",
+    phase: "visual",
+    category: "EN 301 549 — Media",
+    title: "Live video content includes sign language interpretation",
+    wcag: "EN 301 549 §7.1.7",
+    level: "AA",
+    whyItMatters:
+      "For deaf users whose primary language is a sign language (e.g. Swedish Sign Language — Svenskt teckenspråk), captions alone may be insufficient. EN 301 549 §7.1.7 requires that live video content for public sector organisations includes a sign language interpreter embedded in or alongside the video feed.",
+    howToTest:
+      "1. Identify live video streams or recordings of live events on this page.\n2. Is a sign language interpreter clearly visible in the video frame (or in a secondary feed)?\n3. Is the interpreter view large enough to be legible (min. 1/8 of screen area recommended)?\n4. If not live: is a version with sign language interpretation available?",
+    tool: "Manual viewing",
+    passCondition:
+      "Live video includes a sign language interpreter visible in the video. Interpreter is legible at default video size.",
+    conditional: "Only required if this page contains live video or live event recordings.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content", "qa"],
+    affectedUsers: ["deaf"],
+  },
+
+  // ─── EN 301 549 — PROJECT-LEVEL CHECKS ───────────────────────────────────
+  // These appear in the project-level requirements section, not per-page.
+
+  {
+    id: "en-01",
+    phase: "code",
+    category: "EN 301 549 — Accessibility Statement",
+    title: "Accessibility statement exists and is linked from footer",
+    wcag: "EN 301 549 §12.1.1 / WAD",
+    level: "AA",
+    scope: "project",
+    whyItMatters:
+      "The EU Web Accessibility Directive (Directive 2016/2102), implemented in Sweden via Lag (2018:1937), legally requires all public sector websites to publish an accessibility statement. This is a hard legal obligation, not a best practice. The statement must be reachable from every page — a persistent footer link is the standard approach.",
+    howToTest:
+      "1. Check the website footer on multiple pages — is there a link to an accessibility statement (Swedish: tillgänglighetsredogörelse)?\n2. Does the link work and lead to a dedicated page?\n3. Is the statement available in all language versions of the site (Swedish + English for Chalmers)?",
+    tool: "Manual inspection",
+    passCondition:
+      "A dedicated accessibility statement page exists, is reachable from the footer on all pages, and is available in all published languages.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content", "qa"],
+    affectedUsers: ["blind", "low-vision", "deaf", "motor", "cognitive"],
+  },
+  {
+    id: "en-02",
+    phase: "code",
+    category: "EN 301 549 — Accessibility Statement",
+    title: "Statement contains all 9 required sections",
+    wcag: "EN 301 549 §12.1.1 / 2018/1523",
+    level: "AA",
+    scope: "project",
+    whyItMatters:
+      "Commission Implementing Decision (EU) 2018/1523 specifies the exact required content of accessibility statements for public sector websites. A statement that is missing key sections — such as the enforcement procedure or the date of last review — is non-compliant with Swedish law.",
+    howToTest:
+      "Open the accessibility statement and verify it contains all of the following:\n1. Conformance status: fully / substantially / partially / non-compliant with EN 301 549.\n2. List of known inaccessible content with reasons and planned remediation dates.\n3. Third-party content limitations (e.g. embedded YouTube, Google Maps).\n4. Accessible feedback contact: email, phone, or accessible form.\n5. Link to the enforcement/complaints body — Sweden: Diskrimineringsombudsmannen (do.se).\n6. Date of preparation or last review (must be within the past 12 months).\n7. Testing methodology used (self-assessment, third-party audit, etc.).\n8. List of assistive technologies the site was tested with.\n9. Available in all language versions (Swedish + English).",
+    tool: "Manual review against Commission Decision 2018/1523 template",
+    passCondition:
+      "Statement includes all 9 required sections. Conformance status is clearly stated. Known exceptions have remediation dates. Enforcement contact (DO) is linked. Review date is within the past 12 months.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content", "qa"],
+    affectedUsers: ["blind", "low-vision", "deaf", "motor", "cognitive"],
+  },
+  {
+    id: "en-03",
+    phase: "code",
+    category: "EN 301 549 — Support",
+    title: "Dedicated accessibility support contact is published",
+    wcag: "EN 301 549 §12.2.1 / WAD Art.7",
+    level: "AA",
+    scope: "project",
+    whyItMatters:
+      "WAD Article 7 requires public sector organisations to provide a mechanism for users to report accessibility barriers and request accessible formats. Without a visible contact point, users with disabilities have no recourse. The response time commitment (recommended: ≤2 weeks) must also be stated.",
+    howToTest:
+      "1. Is there a dedicated accessibility contact? (email, phone, or feedback form — not a generic contact page).\n2. Is it linked from the accessibility statement?\n3. Is it reachable without login or payment?\n4. Is a response time commitment stated (e.g. 'We aim to respond within 5 working days')?\n5. Test: submit a test accessibility query and verify a response is received.",
+    tool: "Manual inspection",
+    passCondition:
+      "A dedicated, accessible feedback channel exists. It is linked from the accessibility statement. Response time is stated and honoured.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content", "qa"],
+    affectedUsers: ["blind", "low-vision", "deaf", "motor", "cognitive"],
+  },
+  {
+    id: "en-04",
+    phase: "code",
+    category: "EN 301 549 — Support",
+    title: "Third-party content limitations are documented",
+    wcag: "EN 301 549 §12.2.3",
+    level: "AA",
+    scope: "project",
+    whyItMatters:
+      "Public sector organisations cannot rely on third-party content exceptions (WAD Art. 4.2) without disclosing them. If the site embeds YouTube, Google Maps, social media widgets, or other external services with known accessibility limitations, these must be explicitly documented in the accessibility statement so users can plan alternatives.",
+    howToTest:
+      "1. Identify all third-party embedded content across the site (YouTube, Vimeo, Google Maps, Recaptcha, social feeds, etc.).\n2. Does the accessibility statement list each service and describe its known accessibility limitations?\n3. Is an alternative provided for any essential third-party content that is inaccessible (e.g. a text address as alternative to Google Maps)?",
+    tool: "Manual audit of embedded content + accessibility statement review",
+    passCondition:
+      "All significant third-party services are identified in the accessibility statement. Known limitations are described. Alternatives are provided for essential inaccessible content.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content", "developer", "qa"],
+    affectedUsers: ["blind", "low-vision", "deaf", "motor", "cognitive"],
+  },
+  {
+    id: "en-05",
+    phase: "code",
+    category: "EN 301 549 — Accessibility Statement",
+    title: "Improvement plan published for all known non-compliant items",
+    wcag: "EN 301 549 §5.5 / WAD",
+    level: "AA",
+    scope: "project",
+    whyItMatters:
+      "A partially compliant statement without a remediation roadmap is insufficient under Swedish law. Each known exception must include a target date and responsible owner. This creates accountability and demonstrates genuine commitment to improvement rather than a static compliance declaration.",
+    howToTest:
+      "1. Review the list of known inaccessible content in the statement.\n2. Does each item have a planned remediation date?\n3. Is there an overall accessibility improvement plan or roadmap accessible from the statement or elsewhere on the site?\n4. Are dates realistic and being met? (Compare previous statements if available.)",
+    tool: "Manual review of accessibility statement and any linked roadmap documents",
+    passCondition:
+      "Every known non-compliant item in the statement has a planned remediation date. An overall improvement roadmap is published or referenced.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["content", "qa"],
+    affectedUsers: ["blind", "low-vision", "deaf", "motor", "cognitive"],
+  },
+  {
+    id: "en-06",
+    phase: "code",
+    category: "EN 301 549 — Support",
+    title: "The accessibility feedback form is itself accessible",
+    wcag: "EN 301 549 §12.2.1",
+    level: "AA",
+    scope: "project",
+    whyItMatters:
+      "An accessibility feedback form that is not accessible is self-defeating. Users with disabilities — the very people who need to report issues — must be able to use the form with a keyboard, screen reader, and at 200% zoom. A phone number or email alternative must be provided if any form barrier exists.",
+    howToTest:
+      "1. Navigate to the accessibility feedback form or contact mechanism.\n2. Complete it using keyboard only — can you reach and submit all fields?\n3. Test with a screen reader — are all fields labelled? Are error messages announced?\n4. Zoom to 200% — is the form still fully usable without horizontal scrolling?\n5. If the primary mechanism is a form, is there also an email or phone alternative?",
+    tool: "Keyboard navigation, VoiceOver/NVDA, browser zoom",
+    passCondition:
+      "Feedback mechanism is fully operable by keyboard, screen reader, and at 200% zoom. All fields are labelled. An email or phone alternative is available.",
+    applicableTargets: ["EN 301 549"],
+    roles: ["developer", "qa"],
+    affectedUsers: ["blind", "low-vision", "deaf", "motor", "cognitive"],
   },
 ];
 
