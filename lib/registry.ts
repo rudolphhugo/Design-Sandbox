@@ -30,18 +30,12 @@ import { TestLayout3 } from "@/components/showcase/TestLayout3";
 import { TobiasCV } from "@/components/showcase/TobiasCV";
 import { TodoApp } from "@/components/showcase/TodoApp";
 import { ProjectsHome } from "@/components/audit/ProjectsHome";
-import { FishyDashboard1 } from "@/components/showcase/FishyDashboard1";
 
 export const layouts: RegistryItem[] = [
   {
     slug: "a11y-audit",
     name: "A11y Audit",
     component: ProjectsHome,
-  },
-  {
-    slug: "fishy-dashboard-1",
-    name: "Fishy Dashboard 1",
-    component: FishyDashboard1,
   },
   {
     slug: "todo-app",
