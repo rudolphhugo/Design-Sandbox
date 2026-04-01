@@ -4,9 +4,9 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
-import { components, layouts, animations, gestures } from "@/lib/registry";
+import { components, layouts, animations, gestures, games } from "@/lib/registry";
 
-export type TabType = "components" | "layouts" | "animations" | "gestures";
+export type TabType = "components" | "layouts" | "animations" | "gestures" | "games";
 
 export function SandboxShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,12 +16,13 @@ export function SandboxShell({ children }: { children: React.ReactNode }) {
     if (pathname.startsWith("/layouts")) return "layouts";
     if (pathname.startsWith("/animations")) return "animations";
     if (pathname.startsWith("/gestures")) return "gestures";
+    if (pathname.startsWith("/games")) return "games";
     return "components";
   };
 
   const [activeTab, setActiveTab] = useState<TabType>(deriveTab);
 
-  const isFullScreen = pathname.startsWith("/layouts") || pathname.startsWith("/gestures");
+  const isFullScreen = pathname.startsWith("/layouts") || pathname.startsWith("/gestures") || pathname.startsWith("/games");
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -33,6 +34,8 @@ export function SandboxShell({ children }: { children: React.ReactNode }) {
       router.push(`/animations/${animations[0].slug}`);
     } else if (tab === "gestures" && gestures.length > 0) {
       router.push(`/gestures/${gestures[0].slug}`);
+    } else if (tab === "games" && games.length > 0) {
+      router.push(`/games/${games[0].slug}`);
     } else {
       router.push(`/${tab}`);
     }

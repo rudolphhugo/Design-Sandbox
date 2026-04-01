@@ -79,3 +79,14 @@ export const gestures: RegistryItem[] = [
     component: GesturesWorkspace,
   },
 ];
+
+import { FruitFrenzy } from "@/components/showcase/FruitFrenzy";
+
+export const games: RegistryItem[] = [
+  {
+    slug: "fruit-frenzy",
+    name: "Fruit Frenzy",
+    component: FruitFrenzy,
+    showcase: true,
+  },
+];

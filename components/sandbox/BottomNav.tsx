@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Layers, LayoutTemplate, ChevronDown, Sparkles, Hand } from "lucide-react";
+import { Layers, LayoutTemplate, ChevronDown, Sparkles, Hand, Gamepad2 } from "lucide-react";
 import { layouts } from "@/lib/registry";
 import type { TabType } from "./SandboxShell";
 
@@ -117,6 +117,18 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
         >
           <Hand className="h-4 w-4" />
           Gestures
+        </button>
+
+        <button
+          onClick={() => onTabChange("games")}
+          className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors ${
+            activeTab === "games"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-accent"
+          }`}
+        >
+          <Gamepad2 className="h-4 w-4" />
+          Games
         </button>
       </nav>
     </div>
