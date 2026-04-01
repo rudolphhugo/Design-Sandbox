@@ -525,11 +525,11 @@ export function FruitFrenzy() {
 
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
               <div className="text-7xl">🥚🐣🌷</div>
-              <div>
-                <h1 className="text-7xl text-white mb-3 tracking-tight" style={{ fontFamily: "var(--font-erica-one)" }}>
+              <div className="text-center">
+                <h1 className="text-7xl text-white mb-3 tracking-tight text-center" style={{ fontFamily: "var(--font-erica-one)" }}>
                   Easter <span className="text-pink-400">Frenzy</span>
                 </h1>
-                <p className="text-white text-lg max-w-sm">
+                <p className="text-white text-lg max-w-sm mx-auto text-center">
                   Open your mouth to catch falling Easter eggs — but watch out for sneaky fruits!
                 </p>
               </div>
