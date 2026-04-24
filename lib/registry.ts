@@ -30,8 +30,14 @@ import { TestLayout3 } from "@/components/showcase/TestLayout3";
 import { TobiasCV } from "@/components/showcase/TobiasCV";
 import { TodoApp } from "@/components/showcase/TodoApp";
 import { ProjectsHome } from "@/components/audit/ProjectsHome";
+import { NavPatterns } from "@/components/showcase/NavPatterns";
 
 export const layouts: RegistryItem[] = [
+  {
+    slug: "nav-patterns",
+    name: "Nav Patterns",
+    component: NavPatterns,
+  },
   {
     slug: "a11y-audit",
     name: "A11y Audit",

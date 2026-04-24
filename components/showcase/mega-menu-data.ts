@@ -1,0 +1,325 @@
+export interface L2Item {
+  label: string;
+}
+export interface L1Item {
+  label: string;
+  l2: L2Item[];
+}
+export interface NavSection {
+  id: string;
+  label: string;
+  goTo: string;
+  l1: L1Item[];
+}
+
+export const NAV_DATA: NavSection[] = [
+  {
+    id: "institutioner",
+    label: "Institutioner",
+    goTo: "Gå till Institutioner",
+    l1: [
+      {
+        label: "Skolor",
+        l2: [
+          { label: "Arkitektur och samhällsbyggnadsteknik" },
+          { label: "Elektroteknik" },
+          { label: "Industriell teknik och management" },
+          { label: "Informations- och kommunikationsteknik" },
+          { label: "Teknikvetenskap" },
+        ],
+      },
+      {
+        label: "Institutioner A–Ö",
+        l2: [
+          { label: "Biologi och bioteknik" },
+          { label: "Data- och informationsteknik" },
+          { label: "Elektroteknik" },
+          { label: "Fysik" },
+          { label: "Industri- och materialvetenskap" },
+          { label: "Kemi och kemiteknik" },
+          { label: "Matematiska vetenskaper" },
+          { label: "Mekanik och maritima vetenskaper" },
+        ],
+      },
+      {
+        label: "Centrumbildningar",
+        l2: [
+          { label: "Chalmers e-commons" },
+          { label: "Chalmers industriteknik" },
+          { label: "SAFER" },
+          { label: "Chalmers tekniska högskolas stiftelse" },
+        ],
+      },
+      {
+        label: "Bibliotek",
+        l2: [
+          { label: "Sök i biblioteket" },
+          { label: "Tjänster och support" },
+          { label: "Öppettider och besök" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "aktuellt",
+    label: "Aktuellt",
+    goTo: "Gå till Aktuellt",
+    l1: [
+      {
+        label: "Nyheter",
+        l2: [
+          { label: "Senaste nytt" },
+          { label: "Pressrum" },
+          { label: "Nyheter från institutioner" },
+          { label: "Mediaarkiv" },
+        ],
+      },
+      {
+        label: "Evenemang",
+        l2: [
+          { label: "Kommande evenemang" },
+          { label: "Konferenser" },
+          { label: "Offentliga föreläsningar" },
+          { label: "Disputationer" },
+        ],
+      },
+      {
+        label: "Kalender",
+        l2: [
+          { label: "Akademisk kalender" },
+          { label: "Viktiga datum" },
+          { label: "Terminsstart och slut" },
+        ],
+      },
+      {
+        label: "Sociala medier",
+        l2: [
+          { label: "LinkedIn" },
+          { label: "YouTube" },
+          { label: "Instagram" },
+          { label: "Facebook" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "om-oss",
+    label: "Om oss",
+    goTo: "Gå till Om oss",
+    l1: [
+      {
+        label: "Om Chalmers",
+        l2: [
+          { label: "Vision och strategi" },
+          { label: "Historia" },
+          { label: "Fakta och siffror" },
+          { label: "Utmärkelser och rankningar" },
+        ],
+      },
+      {
+        label: "Ledning och organisation",
+        l2: [
+          { label: "Rektor och ledningsgrupp" },
+          { label: "Styrelse" },
+          { label: "Kårorganisationer" },
+          { label: "Organ och råd" },
+        ],
+      },
+      {
+        label: "Hållbarhet",
+        l2: [
+          { label: "Miljö och klimat" },
+          { label: "Social hållbarhet" },
+          { label: "Hållbarhetsrapport" },
+          { label: "Agenda 2030" },
+        ],
+      },
+      {
+        label: "Campus och faciliteter",
+        l2: [
+          { label: "Campus Johanneberg" },
+          { label: "Campus Lindholmen" },
+          { label: "Kartor och hitta hit" },
+          { label: "Restauranger och caféer" },
+        ],
+      },
+      {
+        label: "Karriär",
+        l2: [
+          { label: "Lediga tjänster" },
+          { label: "Jobba på Chalmers" },
+          { label: "Doktorandantagning" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "samarbete",
+    label: "Samarbete",
+    goTo: "Gå till Samarbete",
+    l1: [
+      {
+        label: "Samarbeta med oss",
+        l2: [
+          { label: "Företagssamarbete" },
+          { label: "Offentlig sektor" },
+          { label: "Internationella partners" },
+          { label: "Kontakta oss" },
+        ],
+      },
+      {
+        label: "Forskning och innovation",
+        l2: [
+          { label: "Gemensam forskning" },
+          { label: "Uppdragsforskning" },
+          { label: "Tekniköverföring" },
+          { label: "Inkubatorer och innovationsstöd" },
+        ],
+      },
+      {
+        label: "Utbildningssamarbete",
+        l2: [
+          { label: "Examensarbeten" },
+          { label: "Gästföreläsare" },
+          { label: "Praktikmöjligheter" },
+        ],
+      },
+      {
+        label: "Alumni",
+        l2: [
+          { label: "Alumnination" },
+          { label: "Mentorprogram" },
+          { label: "Evenemang för alumner" },
+          { label: "Ge tillbaka" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "forskning",
+    label: "Forskning",
+    goTo: "Gå till Forskning",
+    l1: [
+      {
+        label: "Forskningsområden i urval",
+        l2: [
+          { label: "Energi" },
+          { label: "Hälsa och teknik" },
+          { label: "IKT, digitalisering och AI" },
+          { label: "Mark" },
+          { label: "Materialvetenskap" },
+          { label: "Nano" },
+          { label: "Produktion" },
+          { label: "Transport Rymd Ocean" },
+          { label: "Biovetenskap" },
+          { label: "Kemi och kemiteknik" },
+          { label: "Arkitektur och samhällsbyggnad" },
+          { label: "Elektroteknik" },
+          { label: "Fysik" },
+          { label: "Matematik" },
+          { label: "Rymdvetenskap" },
+          { label: "Havs- och vattenmiljö" },
+          { label: "Klimat och miljö" },
+          { label: "Industriell ekonomi" },
+          { label: "Automation och mekatronik" },
+          { label: "Nukleär teknik" },
+        ],
+      },
+      {
+        label: "Vi utbildar nya forskare",
+        l2: [
+          { label: "Forskarutbildning" },
+          { label: "Forskarskolor" },
+          { label: "Postdoktorer" },
+          { label: "Karriärvägar inom forskning" },
+        ],
+      },
+      {
+        label: "Möt våra forskare",
+        l2: [
+          { label: "Professorprofiler" },
+          { label: "Intervjuer" },
+          { label: "Berättelser från forskning" },
+          { label: "Gästforskare" },
+        ],
+      },
+      {
+        label: "Centrum",
+        l2: [
+          { label: "Kompetenscentrum" },
+          { label: "Excellenscentrum" },
+          { label: "Strategiska forskningsområden" },
+          { label: "Samverkanscentrum" },
+        ],
+      },
+      {
+        label: "Forskningsinfrastrukturer",
+        l2: [
+          { label: "Laboratorier" },
+          { label: "Testbäddar" },
+          { label: "Databaser och plattformar" },
+          { label: "Nationell infrastruktur" },
+        ],
+      },
+      {
+        label: "Populärvetenskap",
+        l2: [
+          { label: "Nyheter och artiklar" },
+          { label: "Podd och video" },
+          { label: "Utställningar" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "utbildning",
+    label: "Utbildning",
+    goTo: "Gå till Utbildning",
+    l1: [
+      {
+        label: "Program",
+        l2: [
+          { label: "Civilingenjörsprogram" },
+          { label: "Arkitektprogram" },
+          { label: "Masterprogram" },
+          { label: "Kandidatprogram" },
+        ],
+      },
+      {
+        label: "Antagning",
+        l2: [
+          { label: "Anmälan och antagning" },
+          { label: "Behörighet och urval" },
+          { label: "Viktiga datum" },
+          { label: "Internationella sökande" },
+        ],
+      },
+      {
+        label: "Studentliv",
+        l2: [
+          { label: "Studentkår" },
+          { label: "Bostäder" },
+          { label: "Studenthälsa" },
+          { label: "Idrott och fritid" },
+        ],
+      },
+      {
+        label: "Kurser",
+        l2: [
+          { label: "Sök kurs" },
+          { label: "Fristående kurser" },
+          { label: "Distansutbildning" },
+        ],
+      },
+      {
+        label: "Internationellt",
+        l2: [
+          { label: "Utbytesstudier" },
+          { label: "Erasmus+" },
+          { label: "Dubbel examen" },
+          { label: "Engelskspråkiga program" },
+        ],
+      },
+    ],
+  },
+];
