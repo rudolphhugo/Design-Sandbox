@@ -14,6 +14,25 @@ export interface NavSection {
 
 export const NAV_DATA: NavSection[] = [
   {
+    id: "test-12",
+    label: "Test (12)",
+    goTo: "Gå till Test",
+    l1: [
+      { label: "Alternativ 1",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 2",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 3",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 4",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 5",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 6",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 7",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 8",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 9",  l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 10", l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 11", l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+      { label: "Alternativ 12", l2: [{ label: "Underalternativ A" }, { label: "Underalternativ B" }] },
+    ],
+  },
+  {
     id: "institutioner",
     label: "Institutioner",
     goTo: "Gå till Institutioner",

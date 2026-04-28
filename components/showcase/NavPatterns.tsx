@@ -18,7 +18,7 @@ const BEIGE = "#f0ede6";
 const PURPLE = "#755afc";
 
 // ── Patterns ──────────────────────────────────────────────────
-type Pattern = "drill-down" | "fixed" | "flyout" | "anchored" | "drawer" | "drop-panel" | "split" | "split-overlay" | "split-centered" | "split-centered-overlay";
+type Pattern = "drill-down" | "fixed" | "flyout" | "anchored" | "drawer" | "drop-panel" | "split" | "split-overlay" | "split-centered" | "split-centered-overlay" | "split-min8";
 
 const PATTERNS: { id: Pattern; label: string; desc: string }[] = [
   {
@@ -70,6 +70,11 @@ const PATTERNS: { id: Pattern; label: string; desc: string }[] = [
     id: "split-centered-overlay",
     label: "Split Centered + Overlay",
     desc: "Same as Split Centered · adds a transparent backdrop over the page content",
+  },
+  {
+    id: "split-min8",
+    label: "Split Min 8",
+    desc: "Left column always at least 8 items tall · right column capped to same height and scrolls if needed · overlay backdrop",
   },
 ];
 
@@ -125,7 +130,7 @@ export function NavPatterns() {
       return;
     }
     setOpenId(sectionId);
-    setActiveL1(pattern === "split" || pattern === "split-overlay" || pattern === "split-centered" || pattern === "split-centered-overlay" ? 0 : null);
+    setActiveL1(pattern === "split" || pattern === "split-overlay" || pattern === "split-centered" || pattern === "split-centered-overlay" || pattern === "split-min8" ? 0 : null);
     setDirection(1);
 
     if (pattern === "anchored") {
@@ -145,7 +150,7 @@ export function NavPatterns() {
       setDropPanelMaxHeight(window.innerHeight - headerRect.bottom - 20);
     }
 
-    if ((pattern === "split" || pattern === "split-overlay") && navRef.current && navHeaderRef.current) {
+    if ((pattern === "split" || pattern === "split-overlay" || pattern === "split-min8") && navRef.current && navHeaderRef.current) {
       const nav = navRef.current.getBoundingClientRect();
       const header = navHeaderRef.current.getBoundingClientRect();
       setNavEdges({ left: nav.left - header.left, right: header.right - nav.right });
@@ -170,7 +175,7 @@ export function NavPatterns() {
   // Click-outside for anchored + drop-panel + split
   useEffect(() => {
     if (!openId) return;
-    if (pattern !== "anchored" && pattern !== "drop-panel" && pattern !== "split" && pattern !== "split-overlay" && pattern !== "split-centered" && pattern !== "split-centered-overlay") return;
+    if (pattern !== "anchored" && pattern !== "drop-panel" && pattern !== "split" && pattern !== "split-overlay" && pattern !== "split-centered" && pattern !== "split-centered-overlay" && pattern !== "split-min8") return;
     const handle = (e: MouseEvent) => {
       const t = e.target as Node;
       if (anchoredPanelRef.current?.contains(t)) return;
@@ -562,7 +567,7 @@ export function NavPatterns() {
             }}
           >
             {/* L1 column */}
-            <div className="flex w-1/2 shrink-0 flex-col py-2">
+            <div className="flex w-[35%] shrink-0 flex-col py-2">
               <GoTo label={activeSection.goTo} small />
               {activeSection.l1.map((item, i) => {
                 const isActive = i === activeL1;
@@ -589,7 +594,7 @@ export function NavPatterns() {
 
             {/* L2 column */}
             <div
-              className="flex w-1/2 flex-col py-2"
+              className="flex w-[65%] flex-col py-2"
               style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
             >
               {activeL1 !== null && currentL1 && (
@@ -744,7 +749,7 @@ export function NavPatterns() {
               }}
             >
               {/* L1 column */}
-              <div className="flex w-1/2 shrink-0 flex-col py-2">
+              <div className="flex w-[35%] shrink-0 flex-col py-2">
                 <GoTo label={activeSection.goTo} small />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -771,8 +776,81 @@ export function NavPatterns() {
 
               {/* L2 column */}
               <div
-                className="flex w-1/2 flex-col py-2"
+                className="flex w-[65%] flex-col py-2"
                 style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+              >
+                {activeL1 !== null && currentL1 && (
+                  <div className="flex flex-col">
+                    {currentL1.l2.map((item) => (
+                      <L2Link key={item.label} label={item.label} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── SPLIT MIN 8 ──────────────────────────────────── */}
+        {/* Left col: min-height = GoTo(40) + 8 items(40ea) + py-2(16) = 376px  */}
+        {/* Right col: same max-height, overflows with scroll                    */}
+        {pattern === "split-min8" && openId && activeSection && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="absolute left-0 right-0 top-full z-40"
+              style={{ height: "100vh", backgroundColor: "rgba(0,0,0,0.25)" }}
+              onClick={closeMenu}
+            />
+            {/* Panel */}
+            <div
+              ref={splitPanelRef}
+              className="absolute top-full z-50 flex bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+              style={{
+                left: (navEdges?.left ?? 0) - 16,
+                right: (navEdges?.right ?? 0) - 16,
+                borderLeft: `2px solid ${ACCENT}`,
+                borderBottom: `1px solid #e8e8e8`,
+                borderRight: `1px solid #e8e8e8`,
+              }}
+            >
+              {/* L1 column — always at least 8 items tall */}
+              <div
+                className="flex w-[35%] shrink-0 flex-col py-2"
+                style={{ minHeight: 376 }}
+              >
+                <GoTo label={activeSection.goTo} small />
+                {activeSection.l1.map((item, i) => {
+                  const isActive = i === activeL1;
+                  return (
+                    <button
+                      key={item.label}
+                      onMouseEnter={() => setActiveL1(i)}
+                      onClick={() => setActiveL1(i)}
+                      className="flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors"
+                      style={{
+                        padding: "10px 16px",
+                        paddingLeft: isActive ? "12px" : "18px",
+                        backgroundColor: isActive ? "#FAF9F7" : undefined,
+                        borderLeft: isActive ? `6px solid ${ACCENT}` : undefined,
+                        color: isActive ? PURPLE_DARK : "#111",
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* L2 column — capped to same height, scrolls when content overflows */}
+              <div
+                className="flex w-[65%] flex-col overflow-y-auto py-2"
+                style={{
+                  maxHeight: 376,
+                  borderLeft: `1px solid #e8e8e8`,
+                  backgroundColor: "#FAF9F7",
+                }}
               >
                 {activeL1 !== null && currentL1 && (
                   <div className="flex flex-col">
