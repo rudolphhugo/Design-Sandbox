@@ -10,6 +10,7 @@ export interface RegistryItem {
 
 import { ProjectHeroCard } from "@/components/showcase/ProjectHeroCard";
 import { EducationCard } from "@/components/showcase/EducationCard";
+import { EventCard } from "@/components/showcase/EventCard";
 
 export const components: RegistryItem[] = [
   {
@@ -21,6 +22,12 @@ export const components: RegistryItem[] = [
     slug: "education-card",
     name: "Education Card",
     component: EducationCard,
+    showcase: true,
+  },
+  {
+    slug: "event-card",
+    name: "Event Card",
+    component: EventCard,
     showcase: true,
   },
 ];

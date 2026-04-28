@@ -103,7 +103,10 @@ export function NavPatterns() {
   const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(null);
   const [dropPanelMaxHeight, setDropPanelMaxHeight] = useState<number>(600);
 
+  const [navEdges, setNavEdges] = useState<{ left: number; right: number } | null>(null);
+
   const navBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const navRef = useRef<HTMLElement | null>(null);
   const navHeaderRef = useRef<HTMLElement | null>(null);
   const anchoredPanelRef = useRef<HTMLDivElement | null>(null);
   const dropPanelRef = useRef<HTMLDivElement | null>(null);
@@ -140,6 +143,12 @@ export function NavPatterns() {
     if (pattern === "drop-panel" && navHeaderRef.current) {
       const headerRect = navHeaderRef.current.getBoundingClientRect();
       setDropPanelMaxHeight(window.innerHeight - headerRect.bottom - 20);
+    }
+
+    if ((pattern === "split" || pattern === "split-overlay") && navRef.current && navHeaderRef.current) {
+      const nav = navRef.current.getBoundingClientRect();
+      const header = navHeaderRef.current.getBoundingClientRect();
+      setNavEdges({ left: nav.left - header.left, right: header.right - nav.right });
     }
   };
 
@@ -235,7 +244,7 @@ export function NavPatterns() {
         <div className="mx-auto flex h-[68px] max-w-screen-xl items-center justify-between px-16">
           <div className="h-8 w-28 rounded" style={{ backgroundColor: BEIGE }} />
 
-          <nav className="flex items-center gap-8">
+          <nav ref={navRef} className="flex items-center gap-8">
             {NAV_DATA.map((section, i) => {
               const isOpen = openId === section.id;
               return (
@@ -543,15 +552,17 @@ export function NavPatterns() {
         {pattern === "split" && openId && activeSection && (
           <div
             ref={splitPanelRef}
-            className="absolute right-16 top-full z-50 flex bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+            className="absolute top-full z-50 flex bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
             style={{
+              left: navEdges?.left ?? 0,
+              right: navEdges?.right ?? 0,
               borderLeft: `2px solid ${ACCENT}`,
               borderBottom: `1px solid #e8e8e8`,
               borderRight: `1px solid #e8e8e8`,
             }}
           >
             {/* L1 column */}
-            <div className="flex shrink-0 flex-col py-2" style={{ width: 260 }}>
+            <div className="flex w-1/2 shrink-0 flex-col py-2">
               <GoTo label={activeSection.goTo} small />
               {activeSection.l1.map((item, i) => {
                 const isActive = i === activeL1;
@@ -578,8 +589,8 @@ export function NavPatterns() {
 
             {/* L2 column */}
             <div
-              className="flex flex-col py-2"
-              style={{ width: 300, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+              className="flex w-1/2 flex-col py-2"
+              style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
             >
               {activeL1 !== null && currentL1 && (
                 <div className="flex flex-col">
@@ -723,15 +734,17 @@ export function NavPatterns() {
             {/* Panel */}
             <div
               ref={splitPanelRef}
-              className="absolute right-16 top-full z-50 flex bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+              className="absolute top-full z-50 flex bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
               style={{
+                left: (navEdges?.left ?? 0) - 16,
+                right: (navEdges?.right ?? 0) - 16,
                 borderLeft: `2px solid ${ACCENT}`,
-                borderBottom: `1px solid ${BEIGE}`,
-                borderRight: `1px solid ${BEIGE}`,
+                borderBottom: `1px solid #e8e8e8`,
+                borderRight: `1px solid #e8e8e8`,
               }}
             >
               {/* L1 column */}
-              <div className="flex shrink-0 flex-col py-2" style={{ width: 260 }}>
+              <div className="flex w-1/2 shrink-0 flex-col py-2">
                 <GoTo label={activeSection.goTo} small />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -744,7 +757,7 @@ export function NavPatterns() {
                       style={{
                         padding: "10px 16px",
                         paddingLeft: isActive ? "12px" : "18px",
-                        backgroundColor: isActive ? BEIGE : undefined,
+                        backgroundColor: isActive ? "#FAF9F7" : undefined,
                         borderLeft: isActive ? `6px solid ${ACCENT}` : undefined,
                         color: isActive ? PURPLE_DARK : "#111",
                       }}
@@ -758,12 +771,11 @@ export function NavPatterns() {
 
               {/* L2 column */}
               <div
-                className="flex flex-col py-2"
-                style={{ width: 300, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                className="flex w-1/2 flex-col py-2"
+                style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
               >
                 {activeL1 !== null && currentL1 && (
                   <div className="flex flex-col">
-
                     {currentL1.l2.map((item) => (
                       <L2Link key={item.label} label={item.label} />
                     ))}
