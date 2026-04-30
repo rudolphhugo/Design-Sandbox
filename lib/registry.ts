@@ -38,12 +38,18 @@ import { TobiasCV } from "@/components/showcase/TobiasCV";
 import { TodoApp } from "@/components/showcase/TodoApp";
 import { ProjectsHome } from "@/components/audit/ProjectsHome";
 import { NavPatterns } from "@/components/showcase/NavPatterns";
+import { SplitMin8Showcase } from "@/components/showcase/SplitMin8Showcase";
 
 export const layouts: RegistryItem[] = [
   {
     slug: "nav-patterns",
     name: "Nav Patterns",
     component: NavPatterns,
+  },
+  {
+    slug: "split-min8",
+    name: "Split Min 8",
+    component: SplitMin8Showcase,
   },
   {
     slug: "a11y-audit",

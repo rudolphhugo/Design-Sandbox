@@ -63,10 +63,10 @@ export const NAV_DATA: NavSection[] = [
       {
         label: "Centrumbildningar",
         l2: [
-          { label: "Chalmers e-commons" },
-          { label: "Chalmers industriteknik" },
+          { label: "E-commons" },
+          { label: "Industriteknik" },
           { label: "SAFER" },
-          { label: "Chalmers tekniska högskolas stiftelse" },
+          { label: "Tekniska högskolans stiftelse" },
         ],
       },
       {
@@ -127,7 +127,7 @@ export const NAV_DATA: NavSection[] = [
     goTo: "Gå till Om oss",
     l1: [
       {
-        label: "Om Chalmers",
+        label: "Om universitetet",
         l2: [
           { label: "Vision och strategi" },
           { label: "Historia" },
@@ -166,7 +166,7 @@ export const NAV_DATA: NavSection[] = [
         label: "Karriär",
         l2: [
           { label: "Lediga tjänster" },
-          { label: "Jobba på Chalmers" },
+          { label: "Jobba hos oss" },
           { label: "Doktorandantagning" },
         ],
       },

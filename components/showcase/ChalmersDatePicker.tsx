@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-// ─── Chalmers Design System Tokens ───────────────────────────────────────────
+// ─── Design System Tokens ───────────────────────────────────────────
 // Source: Figma file 44Oi8utPWrM85HhkygDlWh, node 3922
 // Token paths match the Figma Semantics variable collection
 const T = {

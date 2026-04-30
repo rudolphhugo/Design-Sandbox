@@ -12,7 +12,7 @@ const EVENT = {
   deadline: { iso: "2026-04-27", label: "27 apr 2026" },
   spots: 100,
   language: "Svenska",
-  location: "MV:L14, Chalmers tvärgata 3",
+  location: "MV:L14, Universitetsgatan 3",
   hasOnline: true,
   registrationUrl: "#",
 };

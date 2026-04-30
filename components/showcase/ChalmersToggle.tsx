@@ -3,7 +3,7 @@
 import { useState, useId } from "react";
 import { cn } from "@/lib/utils";
 
-// ─── Chalmers Design System — Semantic Tokens ────────────────────────────────
+// ─── Design System — Semantic Tokens ────────────────────────────────
 // Source: Figma file 44Oi8utPWrM85HhkygDlWh, Semantics variable collection
 // Each token name maps directly to the Figma variable path
 const T = {
@@ -245,7 +245,7 @@ export function ChalmersToggle() {
             className="text-[11px] font-mono uppercase tracking-widest"
             style={{ color: T.labelDisabled }}
           >
-            Chalmers Design System
+            Design System
           </span>
         </div>
         <h1

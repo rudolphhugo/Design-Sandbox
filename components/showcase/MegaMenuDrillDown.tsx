@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 
-// ── Chalmers brand tokens ─────────────────────────────────────
+// ── Brand tokens ─────────────────────────────────────
 const PURPLE_DARK = "#472dbe";
 const ACCENT = "#6746eb";
 const BEIGE = "#f0ede6";

@@ -12,13 +12,13 @@ import {
 import { NAV_DATA, NavSection } from "./mega-menu-data";
 
 // ── Brand tokens ──────────────────────────────────────────────
-const PURPLE_DARK = "#472dbe";
-const ACCENT = "#6746eb";
+const PURPLE_DARK = "#1e3a8a";
+const ACCENT = "#2563eb";
 const BEIGE = "#f0ede6";
-const PURPLE = "#755afc";
+const PURPLE = "#60a5fa";
 
 // ── Patterns ──────────────────────────────────────────────────
-type Pattern = "drill-down" | "fixed" | "flyout" | "anchored" | "drawer" | "drop-panel" | "split" | "split-overlay" | "split-centered" | "split-centered-overlay" | "split-min8";
+type Pattern = "drill-down" | "fixed" | "flyout" | "anchored" | "drawer" | "drop-panel" | "split" | "split-overlay" | "split-centered" | "split-centered-overlay" | "split-min8" | "split-min8-click" | "split-min8-sticky";
 
 const PATTERNS: { id: Pattern; label: string; desc: string }[] = [
   {
@@ -76,6 +76,16 @@ const PATTERNS: { id: Pattern; label: string; desc: string }[] = [
     label: "Split Min 8",
     desc: "Left column always at least 8 items tall · right column capped to same height and scrolls if needed · overlay backdrop",
   },
+  {
+    id: "split-min8-click",
+    label: "Split Min 8 — Click",
+    desc: "Same as Split Min 8 · right column only reveals on click, not hover",
+  },
+  {
+    id: "split-min8-sticky",
+    label: "Split Min 8 — Sticky",
+    desc: "Hover shows L2 · click locks an item open · click same item again to unlock back to hover",
+  },
 ];
 
 // ── Animation variants ────────────────────────────────────────
@@ -109,6 +119,7 @@ export function NavPatterns() {
   const [dropPanelMaxHeight, setDropPanelMaxHeight] = useState<number>(600);
 
   const [navEdges, setNavEdges] = useState<{ left: number; right: number } | null>(null);
+  const [lockedL1, setLockedL1] = useState<number | null>(null);
 
   const navBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const navRef = useRef<HTMLElement | null>(null);
@@ -121,6 +132,7 @@ export function NavPatterns() {
     setPattern(p);
     setOpenId(null);
     setActiveL1(null);
+    setLockedL1(null);
     setPanelPos(null);
   };
 
@@ -130,7 +142,8 @@ export function NavPatterns() {
       return;
     }
     setOpenId(sectionId);
-    setActiveL1(pattern === "split" || pattern === "split-overlay" || pattern === "split-centered" || pattern === "split-centered-overlay" || pattern === "split-min8" ? 0 : null);
+    setActiveL1(pattern === "split" || pattern === "split-overlay" || pattern === "split-centered" || pattern === "split-centered-overlay" || pattern === "split-min8" || pattern === "split-min8-sticky" ? 0 : null);
+    setLockedL1(null);
     setDirection(1);
 
     if (pattern === "anchored") {
@@ -150,7 +163,7 @@ export function NavPatterns() {
       setDropPanelMaxHeight(window.innerHeight - headerRect.bottom - 20);
     }
 
-    if ((pattern === "split" || pattern === "split-overlay" || pattern === "split-min8") && navRef.current && navHeaderRef.current) {
+    if ((pattern === "split" || pattern === "split-overlay" || pattern === "split-min8" || pattern === "split-min8-click" || pattern === "split-min8-sticky") && navRef.current && navHeaderRef.current) {
       const nav = navRef.current.getBoundingClientRect();
       const header = navHeaderRef.current.getBoundingClientRect();
       setNavEdges({ left: nav.left - header.left, right: header.right - nav.right });
@@ -170,12 +183,13 @@ export function NavPatterns() {
   const closeMenu = () => {
     setOpenId(null);
     setActiveL1(null);
+    setLockedL1(null);
   };
 
   // Click-outside for anchored + drop-panel + split
   useEffect(() => {
     if (!openId) return;
-    if (pattern !== "anchored" && pattern !== "drop-panel" && pattern !== "split" && pattern !== "split-overlay" && pattern !== "split-centered" && pattern !== "split-centered-overlay" && pattern !== "split-min8") return;
+    if (pattern !== "anchored" && pattern !== "drop-panel" && pattern !== "split" && pattern !== "split-overlay" && pattern !== "split-centered" && pattern !== "split-centered-overlay" && pattern !== "split-min8" && pattern !== "split-min8-click" && pattern !== "split-min8-sticky") return;
     const handle = (e: MouseEvent) => {
       const t = e.target as Node;
       if (anchoredPanelRef.current?.contains(t)) return;
@@ -598,11 +612,14 @@ export function NavPatterns() {
               style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
             >
               {activeL1 !== null && currentL1 && (
-                <div className="flex flex-col">
-                  {currentL1.l2.map((item) => (
-                    <L2Link key={item.label} label={item.label} />
-                  ))}
-                </div>
+                <>
+                  <GoTo label={`Gå till ${currentL1.label}`} small />
+                  <div className="flex flex-col">
+                    {currentL1.l2.map((item) => (
+                      <L2Link key={item.label} label={item.label} />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -653,11 +670,14 @@ export function NavPatterns() {
               style={{ width: 300, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
             >
               {activeL1 !== null && currentL1 && (
-                <div className="flex flex-col">
-                  {currentL1.l2.map((item) => (
-                    <L2Link key={item.label} label={item.label} />
-                  ))}
-                </div>
+                <>
+                  <GoTo label={`Gå till ${currentL1.label}`} small />
+                  <div className="flex flex-col">
+                    {currentL1.l2.map((item) => (
+                      <L2Link key={item.label} label={item.label} />
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -716,11 +736,14 @@ export function NavPatterns() {
                 style={{ width: 300, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
               >
                 {activeL1 !== null && currentL1 && (
-                  <div className="flex flex-col">
-                    {currentL1.l2.map((item) => (
-                      <L2Link key={item.label} label={item.label} />
-                    ))}
-                  </div>
+                  <>
+                    <GoTo label={`Gå till ${currentL1.label}`} small />
+                    <div className="flex flex-col">
+                      {currentL1.l2.map((item) => (
+                        <L2Link key={item.label} label={item.label} />
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -780,11 +803,14 @@ export function NavPatterns() {
                 style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
               >
                 {activeL1 !== null && currentL1 && (
-                  <div className="flex flex-col">
-                    {currentL1.l2.map((item) => (
-                      <L2Link key={item.label} label={item.label} />
-                    ))}
-                  </div>
+                  <>
+                    <GoTo label={`Gå till ${currentL1.label}`} small />
+                    <div className="flex flex-col">
+                      {currentL1.l2.map((item) => (
+                        <L2Link key={item.label} label={item.label} />
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -853,16 +879,187 @@ export function NavPatterns() {
                 }}
               >
                 {activeL1 !== null && currentL1 && (
-                  <div className="flex flex-col">
-                    {currentL1.l2.map((item) => (
-                      <L2Link key={item.label} label={item.label} />
-                    ))}
-                  </div>
+                  <>
+                    <GoTo label={`Gå till ${currentL1.label}`} small />
+                    <div className="flex flex-col">
+                      {currentL1.l2.map((item) => (
+                        <L2Link key={item.label} label={item.label} />
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
           </>
         )}
+
+        {/* ── SPLIT MIN 8 — CLICK ──────────────────────────── */}
+        {pattern === "split-min8-click" && openId && activeSection && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="absolute left-0 right-0 top-full z-40"
+              style={{ height: "100vh", backgroundColor: "rgba(0,0,0,0.25)" }}
+              onClick={closeMenu}
+            />
+            {/* Panel */}
+            <div
+              ref={splitPanelRef}
+              className="absolute top-full z-50 flex bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+              style={{
+                left: (navEdges?.left ?? 0) - 16,
+                right: (navEdges?.right ?? 0) - 16,
+                borderLeft: `2px solid ${ACCENT}`,
+                borderBottom: `1px solid #e8e8e8`,
+                borderRight: `1px solid #e8e8e8`,
+              }}
+            >
+              {/* L1 column — click only, no hover */}
+              <div
+                className="flex w-[35%] shrink-0 flex-col py-2"
+                style={{ minHeight: 376 }}
+              >
+                <GoTo label={activeSection.goTo} small />
+                {activeSection.l1.map((item, i) => {
+                  const isActive = i === activeL1;
+                  return (
+                    <button
+                      key={item.label}
+                      onClick={() => setActiveL1(isActive ? null : i)}
+                      className="flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors"
+                      style={{
+                        padding: "10px 16px",
+                        paddingLeft: isActive ? "12px" : "18px",
+                        backgroundColor: isActive ? "#FAF9F7" : undefined,
+                        borderLeft: isActive ? `6px solid ${ACCENT}` : undefined,
+                        color: isActive ? PURPLE_DARK : "#111",
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* L2 column — only populated after a click */}
+              <div
+                className="flex w-[65%] flex-col overflow-y-auto py-2"
+                style={{
+                  maxHeight: 376,
+                  borderLeft: `1px solid #e8e8e8`,
+                  backgroundColor: "#FAF9F7",
+                }}
+              >
+                {activeL1 !== null && currentL1 && (
+                  <>
+                    <GoTo label={`Gå till ${currentL1.label}`} small />
+                    <div className="flex flex-col">
+                      {currentL1.l2.map((item) => (
+                        <L2Link key={item.label} label={item.label} />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── SPLIT MIN 8 — STICKY ─────────────────────────── */}
+        {/* Hover → shows L2. Click → locks. Click same → unlocks back to hover. */}
+        {pattern === "split-min8-sticky" && openId && activeSection && (() => {
+          const displayL1 = lockedL1 !== null ? lockedL1 : activeL1;
+          const displayCurrentL1 = displayL1 !== null ? activeSection.l1[displayL1] : null;
+          return (
+            <>
+              {/* Backdrop */}
+              <div
+                className="absolute left-0 right-0 top-full z-40"
+                style={{ height: "100vh", backgroundColor: "rgba(0,0,0,0.25)" }}
+                onClick={closeMenu}
+              />
+              {/* Panel */}
+              <div
+                ref={splitPanelRef}
+                className="absolute top-full z-50 flex bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+                style={{
+                  left: (navEdges?.left ?? 0) - 16,
+                  right: (navEdges?.right ?? 0) - 16,
+                  borderLeft: `2px solid ${ACCENT}`,
+                  borderBottom: `1px solid #e8e8e8`,
+                  borderRight: `1px solid #e8e8e8`,
+                }}
+              >
+                {/* L1 column */}
+                <div
+                  className="flex w-[35%] shrink-0 flex-col py-2"
+                  style={{ minHeight: 376 }}
+                >
+                  <GoTo label={activeSection.goTo} small />
+                  {activeSection.l1.map((item, i) => {
+                    const isLocked = lockedL1 === i;
+                    const isActive = i === activeL1;
+                    return (
+                      <button
+                        key={item.label}
+                        onMouseEnter={() => {
+                          if (lockedL1 === null) setActiveL1(i);
+                        }}
+                        onClick={() => {
+                          if (lockedL1 === i) {
+                            setLockedL1(null); // unlock → back to hover
+                          } else {
+                            setLockedL1(i);
+                            setActiveL1(i);
+                          }
+                        }}
+                        className="flex w-full items-center justify-between gap-3 text-left transition-colors"
+                        style={{
+                          padding: "10px 16px",
+                          paddingLeft: isLocked ? "8px" : isActive ? "12px" : "18px",
+                          backgroundColor: isActive ? "#FAF9F7" : undefined,
+                          borderLeft: isLocked
+                            ? `10px solid ${PURPLE_DARK}`
+                            : isActive
+                            ? `6px solid ${ACCENT}`
+                            : undefined,
+                          color: isActive ? PURPLE_DARK : "#111",
+                          fontWeight: isLocked ? 700 : 500,
+                          fontSize: 14,
+                        }}
+                      >
+                        <span>{item.label}</span>
+                        <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* L2 column — follows lock, falls back to hover */}
+                <div
+                  className="flex w-[65%] flex-col overflow-y-auto py-2"
+                  style={{
+                    maxHeight: 376,
+                    borderLeft: `1px solid #e8e8e8`,
+                    backgroundColor: "#FAF9F7",
+                  }}
+                >
+                  {displayCurrentL1 && (
+                    <>
+                      <GoTo label={`Gå till ${displayCurrentL1.label}`} small />
+                      <div className="flex flex-col">
+                        {displayCurrentL1.l2.map((item) => (
+                          <L2Link key={item.label} label={item.label} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          );
+        })()}
       </header>
 
       {/* ── ANCHORED panel (fixed position) ──────────────── */}
@@ -1115,7 +1312,7 @@ export function NavPatterns() {
                 Anmälan öppen till<br />höstens program
               </h1>
               <p className="mt-4 text-lg" style={{ color: "rgba(255,255,255,0.85)", maxWidth: 520 }}>
-                Sök till ett av Chalmers civilingenjörsprogram, masterprogram eller arkitektprogram.
+                Sök till ett av universitetets civilingenjörsprogram, masterprogram eller arkitektprogram.
               </p>
               <a
                 href="#"
@@ -1157,7 +1354,7 @@ export function NavPatterns() {
                 Nyheter · 24 april 2026
               </p>
               <h1 className="mb-4 text-4xl font-bold leading-tight" style={{ color: PURPLE, maxWidth: 640 }}>
-                Chalmers forskning leder vägen mot klimatneutrala industrier
+                Forskningen leder vägen mot klimatneutrala industrier
               </h1>
               <div className="mb-8 flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full" style={{ backgroundColor: BEIGE }} />
@@ -1171,10 +1368,10 @@ export function NavPatterns() {
               <div className="mb-8 h-72 w-full rounded-sm" style={{ backgroundColor: "#d4dce8" }} />
 
               <p className="mb-5 text-[17px] font-medium leading-relaxed" style={{ color: "#222" }}>
-                En ny rapport från Chalmers tekniska högskola visar att industrins utsläpp kan halveras till 2035 om rätt teknikinvesteringar görs nu. Forskargruppen bakom studien har kartlagt 400 processer i 12 länder.
+                En ny rapport från universitetet visar att industrins utsläpp kan halveras till 2035 om rätt teknikinvesteringar görs nu. Forskargruppen bakom studien har kartlagt 400 processer i 12 länder.
               </p>
               <p className="mb-5 text-[16px] leading-relaxed" style={{ color: "#444" }}>
-                Industrins koldioxidutsläpp utgör idag drygt 30 procent av de globala utsläppen. Stål, cement och kemi är de tyngsta sektorerna — och de svåraste att ställa om. Men enligt Chalmers-forskarnas beräkningar finns det en tydlig teknisk väg framåt om politiska och ekonomiska incitament samordnas.
+                Industrins koldioxidutsläpp utgör idag drygt 30 procent av de globala utsläppen. Stål, cement och kemi är de tyngsta sektorerna — och de svåraste att ställa om. Men enligt forskarnas beräkningar finns det en tydlig teknisk väg framåt om politiska och ekonomiska incitament samordnas.
               </p>
               <p className="mb-5 text-[16px] leading-relaxed" style={{ color: "#444" }}>
                 — Det handlar inte om att uppfinna nya tekniker, utan om att skala upp det vi redan vet fungerar, säger professor Erik Magnusson som leder projektet. Vätgas, elektrifiering av processvärme och koldioxidavskiljning är nycklarna.
@@ -1202,7 +1399,7 @@ export function NavPatterns() {
               </div>
               <div className="rounded-sm p-5" style={{ border: `1px solid ${BEIGE}` }}>
                 <h3 className="mb-2 text-[14px] font-semibold" style={{ color: "#333" }}>Kontakt</h3>
-                <p className="text-[13px] leading-relaxed" style={{ color: "#666" }}>Anna Lindström<br />kommunikation@chalmers.se<br />031-772 10 00</p>
+                <p className="text-[13px] leading-relaxed" style={{ color: "#666" }}>Anna Lindström<br />kommunikation@universitetet.se<br />031-100 10 00</p>
               </div>
             </aside>
           </div>

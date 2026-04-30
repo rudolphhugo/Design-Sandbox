@@ -11,7 +11,7 @@ import {
   Smartphone,
 } from "lucide-react";
 
-// ── Chalmers brand tokens ─────────────────────────────────────
+// ── Brand tokens ─────────────────────────────────────
 const PURPLE_DARK = "#472dbe";
 const ACCENT = "#6746eb";
 const BEIGE = "#f0ede6";
