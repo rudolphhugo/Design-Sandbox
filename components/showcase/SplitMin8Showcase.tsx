@@ -216,7 +216,7 @@ export function SplitMin8Showcase() {
               {/* L2 */}
               <div
                 className="flex w-[65%] flex-col overflow-y-auto py-2"
-                style={{ maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                style={{ minHeight: 376, maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
               >
                 {activeL1 !== null && currentL1 && (
                   <>
@@ -274,7 +274,7 @@ export function SplitMin8Showcase() {
               {/* L2 — only after click */}
               <div
                 className="flex w-[65%] flex-col overflow-y-auto py-2"
-                style={{ maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                style={{ minHeight: 376, maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
               >
                 {activeL1 !== null && currentL1 && (
                   <>
@@ -350,7 +350,7 @@ export function SplitMin8Showcase() {
                 {/* L2 — follows lock, falls back to hover */}
                 <div
                   className="flex w-[65%] flex-col overflow-y-auto py-2"
-                  style={{ maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                  style={{ minHeight: 376, maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
                 >
                   {displayCurrentL1 && (
                     <>
