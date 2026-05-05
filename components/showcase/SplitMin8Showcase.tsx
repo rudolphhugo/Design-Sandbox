@@ -5,10 +5,10 @@ import { ChevronDown, ChevronRight, ArrowRight } from "lucide-react";
 import { NAV_DATA } from "./mega-menu-data";
 
 // ── Brand tokens ──────────────────────────────────────────────
-const PURPLE_DARK = "#1e3a8a";
-const ACCENT = "#2563eb";
+const PURPLE_DARK = "#3b1fa8";
+const ACCENT = "#6746EB";
 const BEIGE = "#f0ede6";
-const PURPLE = "#60a5fa";
+const PURPLE = "#8b6ef7";
 
 // ── Patterns ──────────────────────────────────────────────────
 type Pattern = "split-min8" | "split-min8-click" | "split-min8-sticky";
