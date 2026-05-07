@@ -96,10 +96,11 @@ export function SplitMin8Showcase() {
 
   const activeSection = NAV_DATA.find((s) => s.id === openId) ?? null;
   const currentL1 = activeSection && activeL1 !== null ? activeSection.l1[activeL1] : null;
+  const sectionHasL2 = activeSection?.l1.some((item) => item.l2.length > 0) ?? false;
 
   const panelStyle = {
-    left: (navEdges?.left ?? 0) - 16,
-    right: (navEdges?.right ?? 0) - 16,
+    left: (navEdges?.left ?? 0),
+    right: (navEdges?.right ?? 0),
     marginTop: 8,
     borderLeft: `2px solid ${ACCENT}`,
     borderBottom: `1px solid #e8e8e8`,
@@ -223,7 +224,7 @@ export function SplitMin8Showcase() {
               style={panelStyle}
             >
               {/* L1 */}
-              <div className={`flex shrink-0 flex-col py-2  ${!currentL1?.l2.length ? 'w-full' : 'w-[35%]'}`} style={{ minHeight: 376 }}>
+              <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[35%]' : 'w-full'}`} style={{ minHeight: 386 }}>
                 <GoTo label={activeSection.goTo} />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -232,38 +233,45 @@ export function SplitMin8Showcase() {
                       key={item.label}
                       onMouseEnter={() => setActiveL1(i)}
                       onClick={() => setActiveL1(i)}
-                      className="flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors"
+                      className={`flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors ${item.l2.length === 0 ? 'hover:bg-[#FAF9F7]' : ''}`}
                       style={{
                         padding: "10px 16px",
-                        paddingLeft: isActive ? "12px" : "18px",
-                        backgroundColor: isActive ? "#FAF9F7" : undefined,
-                        borderLeft: isActive ? `6px solid ${ACCENT}` : undefined,
-                        color: isActive ? PURPLE_DARK : "#111",
+                        paddingLeft: isActive && item.l2.length > 0 ? "12px" : "18px",
+                        backgroundColor: isActive && item.l2.length > 0 ? "#FAF9F7" : undefined,
+                        borderLeft: isActive && item.l2.length > 0 ? `6px solid ${ACCENT}` : undefined,
+                        color: isActive && item.l2.length > 0 ? PURPLE_DARK : "#111",
                       }}
                     >
                       <span>{item.label}</span>
-                      {item.l2.length > 0 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />}
+                      {sectionHasL2 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#111", flexShrink: 0, visibility: item.l2.length === 0 ? "hidden" : "visible" }} />}
                     </button>
                   );
                 })}
               </div>
 
               {/* L2 */}
-              <div
-                className={`flex flex-col overflow-hidden  ${!currentL1?.l2.length ? 'w-0' : 'w-[65%] py-2'}`}
-                style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
-              >
-                {currentL1 && currentL1.l2.length > 0 && (
-                  <>
-                    <GoTo label={`Gå till ${currentL1.label}`} />
-                    <div className="flex flex-col">
-                      {currentL1.l2.map((item) => (
-                        <L2Link key={item.label} label={item.label} />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+              {sectionHasL2 && (
+                <div
+                  className="relative w-[65%]"
+                  style={{
+                    borderLeft: currentL1?.l2.length ? `1px solid #e8e8e8` : undefined,
+                    backgroundColor: currentL1?.l2.length ? "#FAF9F7" : undefined,
+                  }}
+                >
+                  <div className="absolute inset-0 flex flex-col overflow-y-auto py-2">
+                    {currentL1 && currentL1.l2.length > 0 && (
+                      <>
+                        <GoTo label={`Gå till ${currentL1.label}`} />
+                        <div className="flex flex-col">
+                          {currentL1.l2.map((item) => (
+                            <L2Link key={item.label} label={item.label} />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -282,7 +290,7 @@ export function SplitMin8Showcase() {
               style={panelStyle}
             >
               {/* L1 — click only */}
-              <div className={`flex shrink-0 flex-col py-2  ${!currentL1?.l2.length ? 'w-full' : 'w-[35%]'}`} style={{ minHeight: 376 }}>
+              <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[35%]' : 'w-full'}`} style={{ minHeight: 386 }}>
                 <GoTo label={activeSection.goTo} />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -293,35 +301,42 @@ export function SplitMin8Showcase() {
                       className="flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors hover:bg-[#FAF9F7]"
                       style={{
                         padding: "10px 16px",
-                        paddingLeft: isActive ? "12px" : "18px",
-                        backgroundColor: isActive ? "#FAF9F7" : undefined,
-                        borderLeft: isActive ? `6px solid ${ACCENT}` : undefined,
-                        color: isActive ? PURPLE_DARK : "#111",
+                        paddingLeft: isActive && item.l2.length > 0 ? "12px" : "18px",
+                        backgroundColor: isActive && item.l2.length > 0 ? "#FAF9F7" : undefined,
+                        borderLeft: isActive && item.l2.length > 0 ? `6px solid ${ACCENT}` : undefined,
+                        color: isActive && item.l2.length > 0 ? PURPLE_DARK : "#111",
                       }}
                     >
                       <span>{item.label}</span>
-                      {item.l2.length > 0 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />}
+                      {sectionHasL2 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#111", flexShrink: 0, visibility: item.l2.length === 0 ? "hidden" : "visible" }} />}
                     </button>
                   );
                 })}
               </div>
 
               {/* L2 — only after click */}
-              <div
-                className={`flex flex-col overflow-hidden  ${!currentL1?.l2.length ? 'w-0' : 'w-[65%] py-2'}`}
-                style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
-              >
-                {currentL1 && currentL1.l2.length > 0 && (
-                  <>
-                    <GoTo label={`Gå till ${currentL1.label}`} />
-                    <div className="flex flex-col">
-                      {currentL1.l2.map((item) => (
-                        <L2Link key={item.label} label={item.label} />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+              {sectionHasL2 && (
+                <div
+                  className="relative w-[65%]"
+                  style={{
+                    borderLeft: currentL1?.l2.length ? `1px solid #e8e8e8` : undefined,
+                    backgroundColor: currentL1?.l2.length ? "#FAF9F7" : undefined,
+                  }}
+                >
+                  <div className="absolute inset-0 flex flex-col overflow-y-auto py-2">
+                    {currentL1 && currentL1.l2.length > 0 && (
+                      <>
+                        <GoTo label={`Gå till ${currentL1.label}`} />
+                        <div className="flex flex-col">
+                          {currentL1.l2.map((item) => (
+                            <L2Link key={item.label} label={item.label} />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -343,7 +358,7 @@ export function SplitMin8Showcase() {
                 style={panelStyle}
               >
                 {/* L1 */}
-                <div className={`flex shrink-0 flex-col py-2  ${!displayCurrentL1?.l2.length ? 'w-full' : 'w-[35%]'}`} style={{ minHeight: 376 }}>
+                <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[35%]' : 'w-full'}`} style={{ minHeight: 386 }}>
                   <GoTo label={activeSection.goTo} />
                   {activeSection.l1.map((item, i) => {
                     const isLocked = lockedL1 === i;
@@ -360,44 +375,51 @@ export function SplitMin8Showcase() {
                             setActiveL1(i);
                           }
                         }}
-                        className="flex w-full items-center justify-between gap-3 text-left transition-colors"
+                        className={`flex w-full items-center justify-between gap-3 text-left transition-colors ${item.l2.length === 0 ? 'hover:bg-[#FAF9F7]' : ''}`}
                         style={{
                           padding: "10px 16px",
-                          paddingLeft: isLocked ? "8px" : isActive ? "12px" : "18px",
-                          backgroundColor: isActive ? "#FAF9F7" : undefined,
-                          borderLeft: isLocked
+                          paddingLeft: isLocked && item.l2.length > 0 ? "8px" : isActive && item.l2.length > 0 ? "12px" : "18px",
+                          backgroundColor: isActive && item.l2.length > 0 ? "#FAF9F7" : undefined,
+                          borderLeft: isLocked && item.l2.length > 0
                             ? `10px solid ${PURPLE_DARK}`
-                            : isActive
+                            : isActive && item.l2.length > 0
                             ? `6px solid ${ACCENT}`
                             : undefined,
-                          color: isActive ? PURPLE_DARK : "#111",
+                          color: isActive && item.l2.length > 0 ? PURPLE_DARK : "#111",
                           fontWeight: isLocked ? 700 : 500,
                           fontSize: 14,
                         }}
                       >
                         <span>{item.label}</span>
-                        {item.l2.length > 0 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />}
+                        {sectionHasL2 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#111", flexShrink: 0, visibility: item.l2.length === 0 ? "hidden" : "visible" }} />}
                       </button>
                     );
                   })}
                 </div>
 
                 {/* L2 — follows lock, falls back to hover */}
+                {sectionHasL2 && (
                 <div
-                  className={`flex flex-col overflow-hidden  ${!displayCurrentL1?.l2.length ? 'w-0' : 'w-[65%] py-2'}`}
-                  style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                  className="relative w-[65%]"
+                  style={{
+                    borderLeft: displayCurrentL1?.l2.length ? `1px solid #e8e8e8` : undefined,
+                    backgroundColor: displayCurrentL1?.l2.length ? "#FAF9F7" : undefined,
+                  }}
                 >
-                  {displayCurrentL1 && displayCurrentL1.l2.length > 0 && (
-                    <>
-                      <GoTo label={`Gå till ${displayCurrentL1.label}`} />
-                      <div className="flex flex-col">
-                        {displayCurrentL1.l2.map((item) => (
-                          <L2Link key={item.label} label={item.label} />
-                        ))}
-                      </div>
-                    </>
-                  )}
+                  <div className="absolute inset-0 flex flex-col overflow-y-auto py-2">
+                    {displayCurrentL1 && displayCurrentL1.l2.length > 0 && (
+                      <>
+                        <GoTo label={`Gå till ${displayCurrentL1.label}`} />
+                        <div className="flex flex-col">
+                          {displayCurrentL1.l2.map((item) => (
+                            <L2Link key={item.label} label={item.label} />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
+                )}
               </div>
             </>
           );
@@ -524,8 +546,8 @@ function GoTo({ label }: { label: string }) {
   return (
     <a
       href="#"
-      className="flex items-center gap-2 px-6 py-2.5 text-[14px] font-medium hover:underline"
-      style={{ color: PURPLE_DARK }}
+      className="flex items-center gap-2 py-2.5 text-[14px] font-medium hover:underline"
+      style={{ color: PURPLE_DARK, paddingLeft: 18, paddingRight: 24 }}
       onClick={(e) => e.preventDefault()}
     >
       <ArrowRight size={14} />
