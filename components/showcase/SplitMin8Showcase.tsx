@@ -233,7 +233,7 @@ export function SplitMin8Showcase() {
                       key={item.label}
                       onMouseEnter={() => setActiveL1(i)}
                       onClick={() => setActiveL1(i)}
-                      className={`flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors ${item.l2.length === 0 ? 'hover:bg-[#FAF9F7]' : ''}`}
+                      className={`flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors ${item.l2.length === 0 ? 'hover:bg-[#FAF9F7] hover:underline' : ''}`}
                       style={{
                         padding: "10px 16px",
                         paddingLeft: isActive && item.l2.length > 0 ? "12px" : "18px",
@@ -262,7 +262,7 @@ export function SplitMin8Showcase() {
                     backgroundColor: currentL1?.l2.length ? "#FAF9F7" : undefined,
                   }}
                 >
-                  <div className="absolute inset-0 flex flex-col overflow-y-auto py-2">
+                  <div className="absolute inset-x-0 top-0 bottom-5 flex flex-col overflow-y-auto py-2">
                     {currentL1 && currentL1.l2.length > 0 && (
                       <>
                         <GoTo label={`Gå till ${currentL1.label}`} />
@@ -302,7 +302,7 @@ export function SplitMin8Showcase() {
                     <button
                       key={item.label}
                       onClick={() => setActiveL1(isActive ? null : i)}
-                      className="flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors hover:bg-[#FAF9F7]"
+                      className={`flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors hover:bg-[#FAF9F7] ${item.l2.length === 0 ? 'hover:underline' : ''}`}
                       style={{
                         padding: "10px 16px",
                         paddingLeft: isActive && item.l2.length > 0 ? "12px" : "18px",
@@ -331,7 +331,7 @@ export function SplitMin8Showcase() {
                     backgroundColor: currentL1?.l2.length ? "#FAF9F7" : undefined,
                   }}
                 >
-                  <div className="absolute inset-0 flex flex-col overflow-y-auto py-2">
+                  <div className="absolute inset-x-0 top-0 bottom-5 flex flex-col overflow-y-auto py-2">
                     {currentL1 && currentL1.l2.length > 0 && (
                       <>
                         <GoTo label={`Gå till ${currentL1.label}`} />
@@ -383,7 +383,7 @@ export function SplitMin8Showcase() {
                             setActiveL1(i);
                           }
                         }}
-                        className={`flex w-full items-center justify-between gap-3 text-left transition-colors ${item.l2.length === 0 ? 'hover:bg-[#FAF9F7]' : ''}`}
+                        className={`flex w-full items-center justify-between gap-3 text-left transition-colors ${item.l2.length === 0 ? 'hover:bg-[#FAF9F7] hover:underline' : ''}`}
                         style={{
                           padding: "10px 16px",
                           paddingLeft: isLocked && item.l2.length > 0 ? "8px" : isActive && item.l2.length > 0 ? "12px" : "18px",
@@ -418,7 +418,7 @@ export function SplitMin8Showcase() {
                     backgroundColor: displayCurrentL1?.l2.length ? "#FAF9F7" : undefined,
                   }}
                 >
-                  <div className="absolute inset-0 flex flex-col overflow-y-auto py-2">
+                  <div className="absolute inset-x-0 top-0 bottom-5 flex flex-col overflow-y-auto py-2">
                     {displayCurrentL1 && displayCurrentL1.l2.length > 0 && (
                       <>
                         <GoTo label={`Gå till ${displayCurrentL1.label}`} />
@@ -504,47 +504,108 @@ export function SplitMin8Showcase() {
           </div>
         </main>
       ) : (
-        <main className="mx-auto max-w-screen-xl px-16 py-14">
-          <div className="grid grid-cols-[1fr_300px] gap-16">
-            <article>
-              <p className="mb-3 text-sm font-medium uppercase tracking-widest" style={{ color: ACCENT }}>
-                Nyheter · 24 april 2026
-              </p>
-              <h1 className="mb-4 text-4xl font-bold leading-tight" style={{ color: PURPLE, maxWidth: 640 }}>
-                Forskningen leder vägen mot klimatneutrala industrier
-              </h1>
-              <div className="mb-8 flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full" style={{ backgroundColor: BEIGE }} />
-                <div>
-                  <p className="text-[14px] font-medium" style={{ color: "#111" }}>Anna Lindström</p>
-                  <p className="text-[13px]" style={{ color: "#888" }}>Kommunikationsavdelningen</p>
-                </div>
-              </div>
-              <div className="mb-8 h-72 w-full rounded-sm" style={{ backgroundColor: "#d4dce8" }} />
-              <p className="mb-5 text-[17px] font-medium leading-relaxed" style={{ color: "#222" }}>
-                En ny rapport från universitetet visar att industrins utsläpp kan halveras till 2035 om rätt teknikinvesteringar görs nu.
-              </p>
-              <p className="mb-5 text-[16px] leading-relaxed" style={{ color: "#444" }}>
-                Industrins koldioxidutsläpp utgör idag drygt 30 procent av de globala utsläppen. Stål, cement och kemi är de tyngsta sektorerna — och de svåraste att ställa om. Men enligt forskarnas beräkningar finns det en tydlig teknisk väg framåt.
-              </p>
-              <div className="my-8 border-l-4 py-1 pl-6" style={{ borderColor: ACCENT }}>
-                <p className="text-[18px] font-medium italic leading-snug" style={{ color: PURPLE }}>
-                  "Rätt investeringar nu kan halvera industriutsläppen på ett decennium."
-                </p>
-                <p className="mt-2 text-[13px]" style={{ color: "#888" }}>Erik Magnusson, professor i industriell energiteknik</p>
-              </div>
-            </article>
+        <main>
+          {/* Breadcrumb */}
+          <nav className="bg-white">
+            <ol className="mx-auto flex max-w-screen-xl flex-wrap items-center gap-x-2 px-16 pt-4 pb-12 text-[14px]">
+              {["Hem", "Utbildning", "Anmälan och behörighet"].map((crumb) => (
+                <li key={crumb} className="flex items-center gap-x-2">
+                  <a href="#" onClick={(e) => e.preventDefault()} className="hover:underline" style={{ color: "#222" }}>{crumb}</a>
+                  <span style={{ color: "#737373" }}>/</span>
+                </li>
+              ))}
+              <li>
+                <span style={{ color: "#737373" }}>Från anmälan till antagning</span>
+              </li>
+            </ol>
+          </nav>
 
-            <aside className="flex flex-col gap-6 pt-16">
-              <div className="rounded-sm p-5" style={{ backgroundColor: BEIGE }}>
-                <h3 className="mb-3 text-[14px] font-semibold uppercase tracking-wide" style={{ color: "#666" }}>Relaterat</h3>
-                {["Hållbarhetsrapport 2025", "Industriell energiteknik", "Klimat och miljö"].map((t) => (
-                  <a key={t} href="#" onClick={(e) => e.preventDefault()} className="mb-2 flex items-start gap-2 text-[14px] font-medium hover:underline" style={{ color: ACCENT }}>
-                    → {t}
-                  </a>
-                ))}
-              </div>
-            </aside>
+          {/* Page body */}
+          <div className="mx-auto max-w-screen-xl px-16 pb-24">
+            <div className="flex gap-16">
+              {/* Left: main content */}
+              <article className="min-w-0 flex-1">
+                <h1
+                  className="mb-6 font-medium leading-[1.1] tracking-[-1px]"
+                  style={{ fontSize: 48, color: "#111" }}
+                >
+                  Från anmälan till antagning
+                </h1>
+                <p className="mb-8 text-[18px] font-medium leading-[1.5]" style={{ color: "#222" }}>
+                  Här hittar du all information du behöver inför din ansökan — från behörighetskrav och urval till vad som händer efter att du fått ditt antagningsbesked.
+                </p>
+                {/* 16:9 image */}
+                <div className="mb-3 w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                  <img
+                    src="https://www.figma.com/api/mcp/asset/f5792ff4-ef34-4fa2-8bc0-89093fc9b3c5"
+                    alt="Studenter på Chalmers campus"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <p className="text-[14px] leading-relaxed" style={{ color: "#222" }}>
+                  Studenter samlas utanför Kårhuset på Chalmers Johannebergscampus. Foto: Johan Bodell
+                </p>
+              </article>
+
+              {/* Right: sticky sidenav */}
+              <aside className="w-[280px] shrink-0">
+                <div className="sticky top-8">
+                  <nav style={{ borderLeft: `2px solid ${PURPLE_DARK}` }}>
+                    {/* Parent link */}
+                    <a
+                      href="#"
+                      onClick={(e) => e.preventDefault()}
+                      className="flex min-h-[44px] items-center gap-3 px-4 py-2 text-[15px] font-medium hover:underline"
+                      style={{ color: PURPLE_DARK }}
+                    >
+                      <ArrowRight size={16} strokeWidth={2} style={{ flexShrink: 0, color: PURPLE_DARK }} />
+                      Anmälan och behörighet
+                    </a>
+
+                    {/* Active item */}
+                    <div
+                      className="flex min-h-[52px] items-center"
+                      style={{ backgroundColor: BEIGE, borderLeft: `8px solid ${PURPLE_DARK}`, marginLeft: -2 }}
+                    >
+                      <span
+                        className="flex-1 px-4 py-2 text-[15px] font-medium"
+                        style={{ color: PURPLE_DARK }}
+                      >
+                        Från anmälan till antagning
+                      </span>
+                      <button
+                        className="flex h-full w-[52px] shrink-0 items-center justify-center"
+                        style={{ borderLeft: `1px solid #e8e2d6` }}
+                        onClick={(e) => e.preventDefault()}
+                        aria-label="Expandera undersidor"
+                      >
+                        <BrandChevronDown color={PURPLE_DARK} />
+                      </button>
+                    </div>
+
+                    {/* Sibling items */}
+                    {[
+                      "Efter antagningsbeskedet",
+                      "Statistik och antagningspoäng",
+                      "Masterprogram för Chalmersstudenter",
+                      "Studieavgifter",
+                      "Stipendier för avgiftsbetalande masterstudenter",
+                      "Datum och deadlines för masterstudier",
+                    ].map((label) => (
+                      <a
+                        key={label}
+                        href="#"
+                        onClick={(e) => e.preventDefault()}
+                        className="flex min-h-[44px] items-center px-4 py-2 text-[15px] leading-snug hover:underline"
+                        style={{ color: "#222" }}
+                      >
+                        {label}
+                      </a>
+                    ))}
+                  </nav>
+                </div>
+              </aside>
+            </div>
           </div>
         </main>
       )}
@@ -558,6 +619,14 @@ function BrandChevronRight({ color = "currentColor" }: { color?: string }) {
   return (
     <svg width="8" height="11" viewBox="0 0 8 11" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
       <path d="M1.5 1L6.5 5.5L1.5 10" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function BrandChevronDown({ color = "currentColor" }: { color?: string }) {
+  return (
+    <svg width="11" height="8" viewBox="0 0 11 8" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M1 1.5L5.5 6.5L10 1.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -580,8 +649,8 @@ function L2Link({ label }: { label: string }) {
   return (
     <a
       href="#"
-      className="flex items-center px-8 py-[10px] text-[14px] font-medium transition-colors hover:bg-stone-50"
-      style={{ borderLeft: `1px solid ${BEIGE}` }}
+      className="flex items-center py-[10px] pr-8 text-[14px] font-medium hover:underline"
+      style={{ paddingLeft: 18 }}
       onClick={(e) => e.preventDefault()}
     >
       {label}
