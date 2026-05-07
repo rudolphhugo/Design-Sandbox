@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ArrowRight, ExternalLink, Search, Globe } from "lucide-react";
 import { NAV_DATA } from "./mega-menu-data";
+
+// ── Logo placeholder ──────────────────────────────────────────
+function LogoPlaceholder() {
+  return <div className="h-9 w-[162px] rounded-sm" style={{ backgroundColor: ACCENT }} />;
+}
 
 // ── Brand tokens ──────────────────────────────────────────────
 const PURPLE_DARK = "#3b1fa8";
@@ -58,7 +63,9 @@ export function SplitMin8Showcase() {
       return;
     }
     setOpenId(sectionId);
-    setActiveL1(pattern === "split-min8" || pattern === "split-min8-sticky" ? 0 : null);
+    const section = NAV_DATA.find((s) => s.id === sectionId);
+    const firstItem = section?.l1[0];
+    setActiveL1(firstItem && firstItem.l2.length > 0 ? 0 : null);
     setLockedL1(null);
 
     if (navRef.current && navHeaderRef.current) {
@@ -93,6 +100,7 @@ export function SplitMin8Showcase() {
   const panelStyle = {
     left: (navEdges?.left ?? 0) - 16,
     right: (navEdges?.right ?? 0) - 16,
+    marginTop: 8,
     borderLeft: `2px solid ${ACCENT}`,
     borderBottom: `1px solid #e8e8e8`,
     borderRight: `1px solid #e8e8e8`,
@@ -143,10 +151,37 @@ export function SplitMin8Showcase() {
         </div>
       </div>
 
+      {/* ── Utility top bar ──────────────────────────────────── */}
+      <div style={{ backgroundColor: ACCENT, height: 40 }}>
+        <div className="mx-auto flex h-full max-w-screen-xl items-center justify-between px-16">
+        <div className="flex items-center gap-6">
+          {(["Logga in", "Intranät", "Bibliotek"] as const).map((label) => (
+            <a
+              key={label}
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              className="flex items-center gap-1.5 text-[14px] font-medium text-white hover:underline"
+            >
+              {label}
+              <ExternalLink size={13} />
+            </a>
+          ))}
+        </div>
+        <div className="flex items-center gap-6">
+          <a href="#" onClick={(e) => e.preventDefault()} className="flex items-center gap-1.5 text-[14px] font-medium text-white hover:underline">
+            Sök <Search size={13} />
+          </a>
+          <a href="#" onClick={(e) => e.preventDefault()} className="flex items-center gap-1.5 text-[14px] font-medium text-white hover:underline">
+            English <Globe size={13} />
+          </a>
+        </div>
+        </div>
+      </div>
+
       {/* ── Nav header ───────────────────────────────────────── */}
       <header ref={navHeaderRef} className="relative bg-white" style={{ borderBottom: `1px solid ${BEIGE}` }}>
         <div className="mx-auto flex h-[68px] max-w-screen-xl items-center justify-between px-16">
-          <div className="h-8 w-28 rounded" style={{ backgroundColor: BEIGE }} />
+          <LogoPlaceholder />
 
           <nav ref={navRef} className="flex items-center gap-8">
             {NAV_DATA.map((section, i) => {
@@ -188,7 +223,7 @@ export function SplitMin8Showcase() {
               style={panelStyle}
             >
               {/* L1 */}
-              <div className="flex w-[35%] shrink-0 flex-col py-2" style={{ minHeight: 376 }}>
+              <div className={`flex shrink-0 flex-col py-2  ${!currentL1?.l2.length ? 'w-full' : 'w-[35%]'}`} style={{ minHeight: 376 }}>
                 <GoTo label={activeSection.goTo} />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -207,7 +242,7 @@ export function SplitMin8Showcase() {
                       }}
                     >
                       <span>{item.label}</span>
-                      <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />
+                      {item.l2.length > 0 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />}
                     </button>
                   );
                 })}
@@ -215,10 +250,10 @@ export function SplitMin8Showcase() {
 
               {/* L2 */}
               <div
-                className="flex w-[65%] flex-col overflow-y-auto py-2"
-                style={{ minHeight: 376, maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                className={`flex flex-col overflow-hidden  ${!currentL1?.l2.length ? 'w-0' : 'w-[65%] py-2'}`}
+                style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
               >
-                {activeL1 !== null && currentL1 && (
+                {currentL1 && currentL1.l2.length > 0 && (
                   <>
                     <GoTo label={`Gå till ${currentL1.label}`} />
                     <div className="flex flex-col">
@@ -247,7 +282,7 @@ export function SplitMin8Showcase() {
               style={panelStyle}
             >
               {/* L1 — click only */}
-              <div className="flex w-[35%] shrink-0 flex-col py-2" style={{ minHeight: 376 }}>
+              <div className={`flex shrink-0 flex-col py-2  ${!currentL1?.l2.length ? 'w-full' : 'w-[35%]'}`} style={{ minHeight: 376 }}>
                 <GoTo label={activeSection.goTo} />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -255,7 +290,7 @@ export function SplitMin8Showcase() {
                     <button
                       key={item.label}
                       onClick={() => setActiveL1(isActive ? null : i)}
-                      className="flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors"
+                      className="flex w-full items-center justify-between gap-3 text-left text-[14px] font-medium transition-colors hover:bg-[#FAF9F7]"
                       style={{
                         padding: "10px 16px",
                         paddingLeft: isActive ? "12px" : "18px",
@@ -265,7 +300,7 @@ export function SplitMin8Showcase() {
                       }}
                     >
                       <span>{item.label}</span>
-                      <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />
+                      {item.l2.length > 0 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />}
                     </button>
                   );
                 })}
@@ -273,10 +308,10 @@ export function SplitMin8Showcase() {
 
               {/* L2 — only after click */}
               <div
-                className="flex w-[65%] flex-col overflow-y-auto py-2"
-                style={{ minHeight: 376, maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                className={`flex flex-col overflow-hidden  ${!currentL1?.l2.length ? 'w-0' : 'w-[65%] py-2'}`}
+                style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
               >
-                {activeL1 !== null && currentL1 && (
+                {currentL1 && currentL1.l2.length > 0 && (
                   <>
                     <GoTo label={`Gå till ${currentL1.label}`} />
                     <div className="flex flex-col">
@@ -308,7 +343,7 @@ export function SplitMin8Showcase() {
                 style={panelStyle}
               >
                 {/* L1 */}
-                <div className="flex w-[35%] shrink-0 flex-col py-2" style={{ minHeight: 376 }}>
+                <div className={`flex shrink-0 flex-col py-2  ${!displayCurrentL1?.l2.length ? 'w-full' : 'w-[35%]'}`} style={{ minHeight: 376 }}>
                   <GoTo label={activeSection.goTo} />
                   {activeSection.l1.map((item, i) => {
                     const isLocked = lockedL1 === i;
@@ -341,7 +376,7 @@ export function SplitMin8Showcase() {
                         }}
                       >
                         <span>{item.label}</span>
-                        <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />
+                        {item.l2.length > 0 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#ccc", flexShrink: 0 }} />}
                       </button>
                     );
                   })}
@@ -349,10 +384,10 @@ export function SplitMin8Showcase() {
 
                 {/* L2 — follows lock, falls back to hover */}
                 <div
-                  className="flex w-[65%] flex-col overflow-y-auto py-2"
-                  style={{ minHeight: 376, maxHeight: 376, borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
+                  className={`flex flex-col overflow-hidden  ${!displayCurrentL1?.l2.length ? 'w-0' : 'w-[65%] py-2'}`}
+                  style={{ borderLeft: `1px solid #e8e8e8`, backgroundColor: "#FAF9F7" }}
                 >
-                  {displayCurrentL1 && (
+                  {displayCurrentL1 && displayCurrentL1.l2.length > 0 && (
                     <>
                       <GoTo label={`Gå till ${displayCurrentL1.label}`} />
                       <div className="flex flex-col">
@@ -372,32 +407,46 @@ export function SplitMin8Showcase() {
       {/* ── Page content ─────────────────────────────────────── */}
       {pageType === "hero" ? (
         <main>
-          <div
-            className="relative flex w-full items-end"
-            style={{ height: "62vh", backgroundColor: "#2d3a5e" }}
-          >
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(to bottom, rgba(20,28,58,0.15) 0%, rgba(20,28,58,0.75) 100%)" }}
-            />
-            <div className="relative z-10 mx-auto w-full max-w-screen-xl px-16 pb-12">
-              <p className="mb-3 text-sm font-medium uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.7)" }}>
-                Utbildning
-              </p>
-              <h1 className="text-5xl font-bold leading-tight text-white" style={{ maxWidth: 640 }}>
-                Anmälan öppen till<br />höstens program
-              </h1>
-              <p className="mt-4 text-lg" style={{ color: "rgba(255,255,255,0.85)", maxWidth: 520 }}>
-                Sök till ett av universitetets civilingenjörsprogram, masterprogram eller arkitektprogram.
-              </p>
-              <a
-                href="#"
-                onClick={(e) => e.preventDefault()}
-                className="mt-6 inline-flex items-center gap-2 rounded-sm px-6 py-3 text-[15px] font-semibold transition-opacity hover:opacity-80"
-                style={{ backgroundColor: ACCENT, color: "#fff" }}
-              >
-                Läs mer om antagning
-              </a>
+          <div className="bg-white py-8">
+            <div className="mx-auto grid max-w-screen-xl grid-cols-[2fr_1fr] gap-8 px-16">
+              {/* Image */}
+              <div className="aspect-[4/3] overflow-hidden">
+                <img
+                  src="https://www.figma.com/api/mcp/asset/bf39d276-24eb-44ba-885c-88809ef022b9"
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              {/* Copy + CTA */}
+              <div className="flex flex-col gap-8 pt-8">
+                <div className="flex flex-col gap-4">
+                  <h1
+                    className="text-[68px] font-semibold leading-none tracking-[-1px]"
+                    style={{ color: "#755afc" }}
+                  >
+                    Anmälan öppen till höstens program
+                  </h1>
+                  <p className="pr-16 text-[18px] leading-[1.4] text-black">
+                    Upptäck en helt ny värld av möjligheter på Chalmers. Många av våra utbildningar kan du skräddarsy efter dina egna intressen. Anmälan är öppen 14 mars till 15 april.
+                  </p>
+                </div>
+                {/* Button with angled left edge */}
+                <div className="flex items-start">
+                  <img
+                    src="https://www.figma.com/api/mcp/asset/25ab8a37-28c5-4c56-8bf4-e7b2c7d61fce"
+                    alt=""
+                    className="h-[52px] w-[18px] shrink-0"
+                    style={{ marginRight: -1 }}
+                  />
+                  <button
+                    className="flex h-[52px] cursor-pointer items-center px-8 text-[16px] font-medium text-black transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: "#ed7122" }}
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    Sök bland våra program
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -489,7 +538,7 @@ function L2Link({ label }: { label: string }) {
   return (
     <a
       href="#"
-      className="flex items-center px-8 py-[10px] text-[15px] font-medium transition-colors hover:bg-stone-50"
+      className="flex items-center px-8 py-[10px] text-[14px] font-medium transition-colors hover:bg-stone-50"
       style={{ borderLeft: `1px solid ${BEIGE}` }}
       onClick={(e) => e.preventDefault()}
     >
