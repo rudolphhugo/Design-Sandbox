@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, ChevronRight, ArrowRight, ExternalLink, Search, Globe } from "lucide-react";
+import { ChevronDown, ArrowRight, ExternalLink, Search, Globe } from "lucide-react";
 import { NAV_DATA } from "./mega-menu-data";
 
 // ── Logo placeholder ──────────────────────────────────────────
@@ -224,7 +224,7 @@ export function SplitMin8Showcase() {
               style={panelStyle}
             >
               {/* L1 */}
-              <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[35%]' : 'w-full'}`} style={{ minHeight: 386 }}>
+              <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[40%]' : 'w-full'}`} style={{ minHeight: 386 }}>
                 <GoTo label={activeSection.goTo} />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -243,7 +243,11 @@ export function SplitMin8Showcase() {
                       }}
                     >
                       <span>{item.label}</span>
-                      {sectionHasL2 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#111", flexShrink: 0, visibility: item.l2.length === 0 ? "hidden" : "visible" }} />}
+                      {sectionHasL2 && (
+                        <span style={{ visibility: item.l2.length === 0 ? "hidden" : "visible" }}>
+                          <BrandChevronRight color={isActive && item.l2.length > 0 ? ACCENT : "#111"} />
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -252,7 +256,7 @@ export function SplitMin8Showcase() {
               {/* L2 */}
               {sectionHasL2 && (
                 <div
-                  className="relative w-[65%]"
+                  className="relative w-[60%]"
                   style={{
                     borderLeft: currentL1?.l2.length ? `1px solid #e8e8e8` : undefined,
                     backgroundColor: currentL1?.l2.length ? "#FAF9F7" : undefined,
@@ -290,7 +294,7 @@ export function SplitMin8Showcase() {
               style={panelStyle}
             >
               {/* L1 — click only */}
-              <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[35%]' : 'w-full'}`} style={{ minHeight: 386 }}>
+              <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[40%]' : 'w-full'}`} style={{ minHeight: 386 }}>
                 <GoTo label={activeSection.goTo} />
                 {activeSection.l1.map((item, i) => {
                   const isActive = i === activeL1;
@@ -308,7 +312,11 @@ export function SplitMin8Showcase() {
                       }}
                     >
                       <span>{item.label}</span>
-                      {sectionHasL2 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#111", flexShrink: 0, visibility: item.l2.length === 0 ? "hidden" : "visible" }} />}
+                      {sectionHasL2 && (
+                        <span style={{ visibility: item.l2.length === 0 ? "hidden" : "visible" }}>
+                          <BrandChevronRight color={isActive && item.l2.length > 0 ? ACCENT : "#111"} />
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -317,7 +325,7 @@ export function SplitMin8Showcase() {
               {/* L2 — only after click */}
               {sectionHasL2 && (
                 <div
-                  className="relative w-[65%]"
+                  className="relative w-[60%]"
                   style={{
                     borderLeft: currentL1?.l2.length ? `1px solid #e8e8e8` : undefined,
                     backgroundColor: currentL1?.l2.length ? "#FAF9F7" : undefined,
@@ -358,7 +366,7 @@ export function SplitMin8Showcase() {
                 style={panelStyle}
               >
                 {/* L1 */}
-                <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[35%]' : 'w-full'}`} style={{ minHeight: 386 }}>
+                <div className={`flex shrink-0 flex-col py-2 ${sectionHasL2 ? 'w-[40%]' : 'w-full'}`} style={{ minHeight: 386 }}>
                   <GoTo label={activeSection.goTo} />
                   {activeSection.l1.map((item, i) => {
                     const isLocked = lockedL1 === i;
@@ -391,7 +399,11 @@ export function SplitMin8Showcase() {
                         }}
                       >
                         <span>{item.label}</span>
-                        {sectionHasL2 && <ChevronRight size={13} style={{ color: isActive ? ACCENT : "#111", flexShrink: 0, visibility: item.l2.length === 0 ? "hidden" : "visible" }} />}
+                        {sectionHasL2 && (
+                        <span style={{ visibility: item.l2.length === 0 ? "hidden" : "visible" }}>
+                          <BrandChevronRight color={isActive && item.l2.length > 0 ? ACCENT : "#111"} />
+                        </span>
+                      )}
                       </button>
                     );
                   })}
@@ -400,7 +412,7 @@ export function SplitMin8Showcase() {
                 {/* L2 — follows lock, falls back to hover */}
                 {sectionHasL2 && (
                 <div
-                  className="relative w-[65%]"
+                  className="relative w-[60%]"
                   style={{
                     borderLeft: displayCurrentL1?.l2.length ? `1px solid #e8e8e8` : undefined,
                     backgroundColor: displayCurrentL1?.l2.length ? "#FAF9F7" : undefined,
@@ -541,6 +553,14 @@ export function SplitMin8Showcase() {
 }
 
 // ── Sub-elements ──────────────────────────────────────────────
+
+function BrandChevronRight({ color = "currentColor" }: { color?: string }) {
+  return (
+    <svg width="8" height="11" viewBox="0 0 8 11" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <path d="M1.5 1L6.5 5.5L1.5 10" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function GoTo({ label }: { label: string }) {
   return (
