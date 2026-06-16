@@ -46,8 +46,14 @@ import { TodoApp } from "@/components/showcase/TodoApp";
 import { ProjectsHome } from "@/components/audit/ProjectsHome";
 import { NavPatterns } from "@/components/showcase/NavPatterns";
 import { SplitMin8Showcase } from "@/components/showcase/SplitMin8Showcase";
+import { KidsGamesHub } from "@/components/showcase/KidsGamesHub";
 
 export const layouts: RegistryItem[] = [
+  {
+    slug: "kids-games-hub",
+    name: "Kids Games Hub",
+    component: KidsGamesHub,
+  },
   {
     slug: "nav-patterns",
     name: "Nav Patterns",
